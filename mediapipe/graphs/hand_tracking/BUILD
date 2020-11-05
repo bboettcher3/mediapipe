@@ -69,9 +69,10 @@ cc_library(
 
 mediapipe_binary_graph(
     name = "hand_tracking_mobile_gpu_binary_graph",
-    graph = "hand_tracking_mobile.pbtxt",
+    graph = "hand_tracking_custom.pbtxt",
     output_name = "hand_tracking_mobile_gpu.binarypb",
-    deps = [":mobile_calculators"],
+    deps = [":mobile_calculators",
+            "//hand-gesture-recognition:hand-gesture-recognition-calculator",],
 )
 
 cc_library(

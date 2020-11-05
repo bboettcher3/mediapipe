@@ -62,8 +62,8 @@ mediapipe_binary_graph(
 )
 
 mediapipe_binary_graph(
-    name = "face_detection_mobile_gpu_binary_graph",
-    graph = "face_detection_mobile_gpu.pbtxt",
+    name = "mobile_gpu_binary_graph",
+    graph = "face_detection_custom.pbtxt",
     output_name = "face_detection_mobile_gpu.binarypb",
     deps = [":mobile_calculators"],
 )

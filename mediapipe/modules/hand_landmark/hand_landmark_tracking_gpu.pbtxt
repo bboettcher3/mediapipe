@@ -238,3 +238,11 @@ node {
   }
   output_stream: "PREV_LOOP:prev_hand_rects_from_landmarks"
 }
+
+node {
+  calculator: "HandGestureRecognitionCalculator"
+  input_stream: "NORM_LANDMARKS:single_hand_landmarks"
+  input_stream: "NORM_RECT:single_hand_rect_from_landmarks"
+  input_stream: "CLASSIFICATIONS:single_handedness"
+  output_stream: "RECOGNIZED_HAND_GESTURE:recognized_hand_gesture"
+}

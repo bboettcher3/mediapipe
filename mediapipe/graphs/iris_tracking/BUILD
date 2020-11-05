@@ -80,7 +80,7 @@ cc_library(
 
 mediapipe_binary_graph(
     name = "iris_tracking_gpu_binary_graph",
-    graph = "iris_tracking_gpu.pbtxt",
+    graph = "iris_tracking_custom.pbtxt",
     output_name = "iris_tracking_gpu.binarypb",
     deps = [":iris_tracking_gpu_deps"],
 )

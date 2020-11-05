@@ -1,0 +1,149 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/node',
+1 verbose cli   '/usr/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   '-g',
+1 verbose cli   '@bazel/bazelisk' ]
+2 info using npm@3.5.2
+3 info using node@v8.10.0
+4 silly loadCurrentTree Starting
+5 silly install loadCurrentTree
+6 silly install readGlobalPackageData
+7 silly fetchPackageMetaData @bazel/bazelisk
+8 silly fetchNamedPackageData @bazel/bazelisk
+9 silly mapToRegistry name @bazel/bazelisk
+10 silly mapToRegistry scope (from package name) @bazel
+11 verbose mapToRegistry no registry URL found in name for scope @bazel
+12 silly mapToRegistry using default registry
+13 silly mapToRegistry registry https://registry.npmjs.org/
+14 silly mapToRegistry uri https://registry.npmjs.org/@bazel%2fbazelisk
+15 verbose request uri https://registry.npmjs.org/@bazel%2fbazelisk
+16 verbose request no auth needed
+17 info attempt registry request try #1 at 10:01:12 AM
+18 verbose request id 7c8edda7fa35ee05
+19 http request GET https://registry.npmjs.org/@bazel%2fbazelisk
+20 http 200 https://registry.npmjs.org/@bazel%2fbazelisk
+21 verbose headers { date: 'Tue, 25 Aug 2020 15:01:11 GMT',
+21 verbose headers   'content-type': 'application/json',
+21 verbose headers   'transfer-encoding': 'chunked',
+21 verbose headers   connection: 'keep-alive',
+21 verbose headers   'set-cookie':
+21 verbose headers    [ '__cfduid=d3fa1a48f98c5b2b24f040a0df6f873c11598367670; expires=Thu, 24-Sep-20 15:01:10 GMT; path=/; domain=.npmjs.org; HttpOnly; SameSite=Lax' ],
+21 verbose headers   'cf-ray': '5c862fd2a808fe50-HEL',
+21 verbose headers   'cache-control': 'public, max-age=300',
+21 verbose headers   etag: 'W/"045b7ffd64b4f53cb74519b458ffa7c8"',
+21 verbose headers   'last-modified': 'Tue, 18 Aug 2020 08:01:59 GMT',
+21 verbose headers   vary: 'accept-encoding, accept',
+21 verbose headers   'cf-cache-status': 'HIT',
+21 verbose headers   'cf-request-id': '04c7bc37aa0000fe500f22f200000001',
+21 verbose headers   'expect-ct': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"',
+21 verbose headers   server: 'cloudflare',
+21 verbose headers   'content-encoding': 'gzip' }
+22 silly get cb [ 200,
+22 silly get   { date: 'Tue, 25 Aug 2020 15:01:11 GMT',
+22 silly get     'content-type': 'application/json',
+22 silly get     'transfer-encoding': 'chunked',
+22 silly get     connection: 'keep-alive',
+22 silly get     'set-cookie':
+22 silly get      [ '__cfduid=d3fa1a48f98c5b2b24f040a0df6f873c11598367670; expires=Thu, 24-Sep-20 15:01:10 GMT; path=/; domain=.npmjs.org; HttpOnly; SameSite=Lax' ],
+22 silly get     'cf-ray': '5c862fd2a808fe50-HEL',
+22 silly get     'cache-control': 'public, max-age=300',
+22 silly get     etag: 'W/"045b7ffd64b4f53cb74519b458ffa7c8"',
+22 silly get     'last-modified': 'Tue, 18 Aug 2020 08:01:59 GMT',
+22 silly get     vary: 'accept-encoding, accept',
+22 silly get     'cf-cache-status': 'HIT',
+22 silly get     'cf-request-id': '04c7bc37aa0000fe500f22f200000001',
+22 silly get     'expect-ct': 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"',
+22 silly get     server: 'cloudflare',
+22 silly get     'content-encoding': 'gzip' } ]
+23 verbose get saving @bazel/bazelisk to /home/brady/.npm/registry.npmjs.org/_40bazel_252fbazelisk/.cache.json
+24 verbose makeDirectory /home/brady/.npm creation not in flight; initializing
+25 silly makeDirectory /home/brady/.npm uid: 1000 gid: 1000
+26 silly install normalizeTree
+27 silly loadCurrentTree Finishing
+28 silly loadIdealTree Starting
+29 silly install loadIdealTree
+30 silly cloneCurrentTree Starting
+31 silly install cloneCurrentTreeToIdealTree
+32 silly cloneCurrentTree Finishing
+33 silly loadShrinkwrap Starting
+34 silly install loadShrinkwrap
+35 silly loadShrinkwrap Finishing
+36 silly loadAllDepsIntoIdealTree Starting
+37 silly install loadAllDepsIntoIdealTree
+38 silly resolveWithNewModule @bazel/bazelisk@1.6.1 checking installable status
+39 silly cache add args [ '@bazel/bazelisk', null ]
+40 verbose cache add spec @bazel/bazelisk
+41 silly cache add parsed spec Result {
+41 silly cache add   raw: '@bazel/bazelisk',
+41 silly cache add   scope: '@bazel',
+41 silly cache add   name: '@bazel/bazelisk',
+41 silly cache add   rawSpec: '',
+41 silly cache add   spec: 'latest',
+41 silly cache add   type: 'tag' }
+42 silly addNamed @bazel/bazelisk@latest
+43 verbose addNamed "latest" is being treated as a dist-tag for @bazel/bazelisk
+44 info addNameTag [ '@bazel/bazelisk', 'latest' ]
+45 silly mapToRegistry name @bazel/bazelisk
+46 silly mapToRegistry scope (from package name) @bazel
+47 verbose mapToRegistry no registry URL found in name for scope @bazel
+48 silly mapToRegistry using default registry
+49 silly mapToRegistry registry https://registry.npmjs.org/
+50 silly mapToRegistry uri https://registry.npmjs.org/@bazel%2fbazelisk
+51 verbose addNameTag registry:https://registry.npmjs.org/@bazel%2fbazelisk not in flight; fetching
+52 verbose get https://registry.npmjs.org/@bazel%2fbazelisk not expired, no request
+53 silly addNameTag next cb for @bazel/bazelisk with tag latest
+54 silly addNamed @bazel/bazelisk@1.6.1
+55 verbose addNamed "1.6.1" is a plain semver version for @bazel/bazelisk
+56 silly mapToRegistry name @bazel/bazelisk
+57 silly mapToRegistry scope (from package name) @bazel
+58 verbose mapToRegistry no registry URL found in name for scope @bazel
+59 silly mapToRegistry using default registry
+60 silly mapToRegistry registry https://registry.npmjs.org/
+61 silly mapToRegistry uri https://registry.npmjs.org/@bazel%2fbazelisk
+62 verbose addRemoteTarball https://registry.npmjs.org/@bazel/bazelisk/-/bazelisk-1.6.1.tgz not in flight; adding
+63 verbose addRemoteTarball [ 'https://registry.npmjs.org/@bazel/bazelisk/-/bazelisk-1.6.1.tgz',
+63 verbose addRemoteTarball   'f9e279d2fecaf6cec6ed676bc8714846f3704e40' ]
+64 info retry fetch attempt 1 at 10:01:13 AM
+65 info attempt registry request try #1 at 10:01:13 AM
+66 http fetch GET https://registry.npmjs.org/@bazel/bazelisk/-/bazelisk-1.6.1.tgz
+67 http fetch 200 https://registry.npmjs.org/@bazel/bazelisk/-/bazelisk-1.6.1.tgz
+68 silly fetchAndShaCheck shasum f9e279d2fecaf6cec6ed676bc8714846f3704e40
+69 verbose addTmpTarball /tmp/npm-31015-a7438c2b/registry.npmjs.org/_40bazel/bazelisk/-/bazelisk-1.6.1.tgz not in flight; adding
+70 verbose addTmpTarball already have metadata; skipping unpack for @bazel/bazelisk@1.6.1
+71 silly cache afterAdd @bazel/bazelisk@1.6.1
+72 verbose afterAdd /home/brady/.npm/@bazel/bazelisk/1.6.1/package/package.json not in flight; writing
+73 verbose afterAdd /home/brady/.npm/@bazel/bazelisk/1.6.1/package/package.json written
+74 silly loadAllDepsIntoIdealTree Finishing
+75 silly idealTree:prePrune lib
+75 silly idealTree:prePrune └── @bazel/bazelisk@1.6.1
+76 silly loadIdealTree Finishing
+77 silly currentTree lib
+78 silly idealTree lib
+78 silly idealTree └── @bazel/bazelisk@1.6.1
+79 silly generateActionsToTake Starting
+80 silly install generateActionsToTake
+81 warn checkPermissions Missing write access to /usr/local/lib
+82 silly rollbackFailedOptional Starting
+83 silly rollbackFailedOptional Finishing
+84 silly runTopLevelLifecycles Starting
+85 silly runTopLevelLifecycles Finishing
+86 silly install printInstalled
+87 verbose stack Error: EACCES: permission denied, access '/usr/local/lib'
+88 verbose cwd /home/brady/Documents/mediapipe/mediapipe/examples/android/src/java/com/google/mediapipe/apps
+89 error Linux 5.3.0-53-generic
+90 error argv "/usr/bin/node" "/usr/bin/npm" "install" "-g" "@bazel/bazelisk"
+91 error node v8.10.0
+92 error npm  v3.5.2
+93 error path /usr/local/lib
+94 error code EACCES
+95 error errno -13
+96 error syscall access
+97 error Error: EACCES: permission denied, access '/usr/local/lib'
+97 error  { Error: EACCES: permission denied, access '/usr/local/lib'
+97 error   errno: -13,
+97 error   code: 'EACCES',
+97 error   syscall: 'access',
+97 error   path: '/usr/local/lib' }
+98 error Please try running this command again as root/Administrator.
+99 verbose exit [ -13, true ]
