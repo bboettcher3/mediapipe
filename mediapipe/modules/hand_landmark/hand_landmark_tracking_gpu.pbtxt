@@ -37,6 +37,7 @@ output_stream: "HAND_ROIS_FROM_LANDMARKS:hand_rects"
 # Regions of interest calculated based on palm detections.
 # (std::vector<NormalizedRect>)
 output_stream: "HAND_ROIS_FROM_PALM_DETECTIONS:hand_rects_from_palm_detections"
+output_stream: "recognized_hand_gesture"
 
 # Defines whether landmarks on the previous image should be used to help
 # localize landmarks on the current image.
@@ -239,10 +240,36 @@ node {
   output_stream: "PREV_LOOP:prev_hand_rects_from_landmarks"
 }
 
+# Converts the hand detection into a rectangle (normalized by image size)
+# that encloses the hand.
+node {
+  calculator: "HandDetectionsToRectsCalculator"
+  input_stream: "DETECTION:palm_detection"
+  input_stream: "IMAGE_SIZE:image_size"
+  output_stream: "NORM_RECT:hand_rect_from_landmarks"
+}
+
+# Expands the hand rectangle so that the box contains the entire hand and it's
+# big enough so that it's likely to still contain the hand even with some motion
+# in the next video frame .
+node {
+  calculator: "RectTransformationCalculator"
+  input_stream: "NORM_RECT:hand_rect_from_landmarks"
+  input_stream: "IMAGE_SIZE:image_size"
+  output_stream: "hand_rect_for_next_frame"
+  node_options: {
+    [type.googleapis.com/mediapipe.RectTransformationCalculatorOptions] {
+      scale_x: 2.1
+      scale_y: 2.1
+      shift_y: -0.1
+      square_long: true
+    }
+  }
+
 node {
   calculator: "HandGestureRecognitionCalculator"
   input_stream: "NORM_LANDMARKS:single_hand_landmarks"
-  input_stream: "NORM_RECT:single_hand_rect_from_landmarks"
+  input_stream: "NORM_RECT:hand_rect_for_next_frame"
   input_stream: "CLASSIFICATIONS:single_handedness"
   output_stream: "RECOGNIZED_HAND_GESTURE:recognized_hand_gesture"
 }
