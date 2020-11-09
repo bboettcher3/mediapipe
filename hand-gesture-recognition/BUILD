@@ -12,3 +12,18 @@ cc_library(
     ],
     alwayslink = 1,
 )
+
+cc_library(
+    name = "custom-landmark-projection-calculator",
+    srcs = ["custom-landmark-projection-calculator.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//mediapipe/framework:calculator_framework",
+        "//mediapipe/framework/formats:landmark_cc_proto",
+        "//mediapipe/framework/port:status",
+        "//mediapipe/framework/formats:rect_cc_proto",
+        "//mediapipe/framework/port:ret_check",
+        "//mediapipe/framework/formats:classification_cc_proto",
+    ],
+    alwayslink = 1,
+)

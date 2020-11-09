@@ -43,23 +43,6 @@ private:
         return distance < 0.1;
     }
 
-    bool isValidDetection(NormalizedLandmark knuckLeft, NormalizedLandmark knuckRight, NormalizedLandmark bottomPalm, NormalizedLandmark topThumb)
-    {
-        // Computes distance between opposite knuckles
-        /* float knuckDist = this->get_Euclidean_DistanceAB(knuckLeft.x(), knuckLeft.y(), knuckRight.x(), knuckRight.y());
-        // Computes distance between thumb nail and bottom of palm (pretty much physically impossible)
-        float palmDist = this->get_Euclidean_DistanceAB(bottomPalm.x(), bottomPalm.y(), topThumb.x(), topThumb.y());
-        if (knuckDist < 0.1 || palmDist < 0.28)
-        {
-            return false;
-        }
-        else
-        {
-            //LOG(INFO) << "Knuck: " << knuckDist << ", Palm: " << palmDist;
-        } */
-        return true;
-    }
-
     enum LANDMARKS {
         TOP_THUMB = 4,
         BOTTOM_THUMB = 2,
@@ -128,22 +111,10 @@ REGISTER_CALCULATOR(HandGestureRecognitionCalculator);
         return ::mediapipe::OkStatus();
     }    
 
-    //LOG(INFO) << "w: " << width << ", h: " << height;
-
     const auto &landmarkList = cc->Inputs()
                                    .Tag(normalizedLandmarkListTag)
                                    .Get<mediapipe::NormalizedLandmarkList>();
     RET_CHECK_GT(landmarkList.landmark_size(), 0) << "Input landmark vector is empty.";
-
-    if (!this->isValidDetection(landmarkList.landmark(INDEX_KNUCK), landmarkList.landmark(PINKY_KNUCK), landmarkList.landmark(BOTTOM_PALM), landmarkList.landmark(TOP_THUMB)))
-    {
-        LOG(INFO) << "Bunched up points, discarding..";
-        recognized_hand_gesture = new std::string("NONE");
-        cc->Outputs()
-            .Tag(recognizedHandGestureTag)
-            .Add(recognized_hand_gesture, cc->InputTimestamp());
-        return ::mediapipe::OkStatus();
-    }
 
     // finger states
     bool thumbIsOpen = false;
@@ -151,7 +122,6 @@ REGISTER_CALCULATOR(HandGestureRecognitionCalculator);
     bool secondFingerIsOpen = false;
     bool thirdFingerIsOpen = false;
     bool fourthFingerIsOpen = false;
-    //
 
     const auto thumbSide = (landmarkList.landmark(BOTTOM_INDEX).x() < landmarkList.landmark(BOTTOM_RING).x()) ? "Left" : "Right";
 
