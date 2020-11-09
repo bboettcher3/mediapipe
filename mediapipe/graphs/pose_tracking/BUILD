@@ -69,8 +69,8 @@ cc_library(
 )
 
 mediapipe_binary_graph(
-    name = "upper_body_pose_tracking_gpu_binary_graph",
-    graph = "upper_body_pose_tracking_gpu.pbtxt",
+    name = "mobile_upper_body_pose_tracking_gpu_binary_graph",
+    graph = "upper_body_pose_tracking_custom.pbtxt",
     output_name = "upper_body_pose_tracking_gpu.binarypb",
     deps = [":upper_body_pose_tracking_gpu_deps"],
 )
