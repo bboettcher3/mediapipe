@@ -493,10 +493,11 @@ class EffectRendererImpl : public EffectRenderer {
 
     // Render the source texture on top of the quad mesh (i.e. make a copy)
     // into the render target.
+    /**
     MP_RETURN_IF_ERROR(renderer_->Render(
         *render_target_, *src_texture, renderable_quad_mesh_3d_,
         identity_matrix_, identity_matrix_, Renderer::RenderMode::OVERDRAW))
-        << "Failed to render the source texture on top of the quad mesh!";
+        << "Failed to render the source texture on top of the quad mesh!";**/
 
     // Extract pose transform matrices and meshes from the face geometry data;
     const int num_faces = multi_face_geometry.size();

@@ -32,6 +32,7 @@ cc_library(
         "//mediapipe/modules/face_geometry",
         "//mediapipe/modules/face_geometry:effect_renderer_calculator",
         "//mediapipe/modules/face_geometry:env_generator_calculator",
+        "//mediapipe/gpu:gpu_buffer_to_image_frame_calculator",
     ],
 )
 

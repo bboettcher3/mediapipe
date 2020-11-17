@@ -135,7 +135,7 @@ class EffectRendererCalculator : public CalculatorBase {
                        CreateEffectRenderer(environment, effect_mesh_3d,
                                             std::move(effect_texture)),
                        _ << "Failed to create the effect renderer!");
-
+      LOG(INFO) << "all things are ok";
       return mediapipe::OkStatus();
     });
   }
@@ -187,7 +187,7 @@ class EffectRendererCalculator : public CalculatorBase {
           .Tag(kImageGpuTag)
           .AddPacket(mediapipe::Adopt<GpuBuffer>(output_gpu_buffer.release())
                          .At(cc->InputTimestamp()));
-
+      LOG(INFO) << "out put image data";
       output_gl_texture.Release();
       input_gl_texture.Release();
 
@@ -240,7 +240,7 @@ class EffectRendererCalculator : public CalculatorBase {
                                   ImageFrame::kGlDefaultAlignmentBoundary);
 
     output_mat.copyTo(formats::MatView(&output_image_frame));
-
+    LOG(INFO) << "successfully read text from file";
     return output_image_frame;
   }
 
@@ -253,6 +253,7 @@ class EffectRendererCalculator : public CalculatorBase {
     face_geometry::Mesh3d mesh_3d;
     RET_CHECK(mesh_3d.ParseFromString(mesh_3d_blob))
         << "Failed to parse a mesh 3D proto from a binary blob!";
+    LOG(INFO) << "successfully read mesh 3d from file";
 
     return mesh_3d;
   }
@@ -267,6 +268,7 @@ class EffectRendererCalculator : public CalculatorBase {
     MP_RETURN_IF_ERROR(
         mediapipe::GetResourceContents(resolved_path, &content_blob))
         << "Failed to read content blob! Resolved path = " << resolved_path;
+    LOG(INFO) << "successfully read content blob from file";
 
     return content_blob;
   }

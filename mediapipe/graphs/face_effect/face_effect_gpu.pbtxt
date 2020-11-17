@@ -143,3 +143,10 @@ node {
   output_stream: "output_video"
 }
 
+# Convert an input image (GpuBuffer or ImageFrame) to ImageFrame.
+node: {
+  calculator: "GpuBufferToImageFrameCalculator"
+  input_stream: "output_video"
+  output_stream: "output_image_frame"
+}
+
