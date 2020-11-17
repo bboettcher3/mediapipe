@@ -493,6 +493,11 @@ class EffectRendererImpl : public EffectRenderer {
 
     // Render the source texture on top of the quad mesh (i.e. make a copy)
     // into the render target.
+
+    // As Android Live app renders surface view ourselves instead of using
+    // mediapipe ExternalTextureConverter and consumer etc. We discard the source
+    // texture rendering part here.
+    // TODO: make another copy and re-enable it if you need source texture some day
     /**
     MP_RETURN_IF_ERROR(renderer_->Render(
         *render_target_, *src_texture, renderable_quad_mesh_3d_,
