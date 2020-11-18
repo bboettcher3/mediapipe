@@ -1,0 +1,115 @@
+# MediaPipe graph that performs face mesh/face detection/face effect with TensorFlow Lite on GPU.
+
+# GPU buffer. (GpuBuffer)
+input_stream: "input_video"
+
+# Max number of faces to detect/process. (int)
+input_side_packet: "num_faces"
+
+# Output image with rendered results. (ImageFrame)
+output_stream: "output_image_frame"
+# Collection of detected/processed faces, each represented as a list of
+# landmarks. (std::vector<NormalizedLandmarkList>)
+output_stream: "multi_face_landmarks"
+output_stream: "face_detections"
+
+# Throttles the images flowing downstream for flow control. It passes through
+# the very first incoming image unaltered, and waits for downstream nodes
+# (calculators and subgraphs) in the graph to finish their tasks before it
+# passes through another image. All images that come in while waiting are
+# dropped, limiting the number of in-flight images in most part of the graph to
+# 1. This prevents the downstream nodes from queuing up incoming images and data
+# excessively, which leads to increased latency and memory usage, unwanted in
+# real-time mobile applications. It also eliminates unnecessarily computation,
+# e.g., the output produced by a node may get dropped downstream if the
+# subsequent nodes are still busy processing previous inputs.
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
+# Generates an environment that describes the current virtual scene.
+node {
+  calculator: "FaceGeometryEnvGeneratorCalculator"
+  output_side_packet: "ENVIRONMENT:environment"
+  node_options: {
+    [type.googleapis.com/mediapipe.FaceGeometryEnvGeneratorCalculatorOptions] {
+      environment: {
+        origin_point_location: TOP_LEFT_CORNER
+        perspective_camera: {
+          vertical_fov_degrees: 63.0  # 63 degrees
+          near: 1.0  # 1cm
+          far: 10000.0  # 100m
+        }
+      }
+    }
+  }
+}
+
+# Subgraph that detects faces and corresponding landmarks.
+node {
+  calculator: "FaceLandmarkFrontGpu"
+  input_stream: "IMAGE:throttled_input_video"
+  input_side_packet: "NUM_FACES:num_faces"
+  output_stream: "LANDMARKS:multi_face_landmarks"
+  output_stream: "ROIS_FROM_LANDMARKS:face_rects_from_landmarks"
+  output_stream: "DETECTIONS:face_detections"
+  output_stream: "ROIS_FROM_DETECTIONS:face_rects_from_detections"
+}
+
+# Extracts the throttled input video frame dimensions as a separate packet.
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE_GPU:throttled_input_video"
+  output_stream: "SIZE:input_video_size"
+}
+
+# Subgraph that computes face geometry from landmarks for a single face.
+node {
+  calculator: "FaceGeometry"
+  input_stream: "MULTI_FACE_LANDMARKS:multi_face_landmarks"
+  input_stream: "IMAGE_SIZE:input_video_size"
+  input_side_packet: "ENVIRONMENT:environment"
+  output_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
+}
+
+# Renders the Glasses effect.
+node {
+  calculator: "FaceGeometryEffectRendererCalculator"
+  input_side_packet: "ENVIRONMENT:environment"
+  input_stream: "IMAGE_GPU:throttled_input_video"
+  input_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
+  output_stream: "IMAGE_GPU:output_video"
+  node_options: {
+    [type.googleapis.com/mediapipe.FaceGeometryEffectRendererCalculatorOptions] {
+      effect_texture_path: "mediapipe/graphs/face_custom/data/glasses.pngblob"
+      effect_mesh_3d_path: "mediapipe/graphs/face_custom/data/glasses.binarypb"
+    }
+  }
+}
+
+# Converts the detections to drawing primitives for annotation overlay.
+node {
+  calculator: "DetectionsToRenderDataCalculator"
+  input_stream: "DETECTIONS:face_detections"
+  output_stream: "RENDER_DATA:render_data"
+  node_options: {
+    [type.googleapis.com/mediapipe.DetectionsToRenderDataCalculatorOptions] {
+      thickness: 4.0
+      color { r: 255 g: 0 b: 0 }
+    }
+  }
+}
+
+# Convert an input image (GpuBuffer or ImageFrame) to ImageFrame.
+node: {
+  calculator: "GpuBufferToImageFrameCalculator"
+  input_stream: "output_video"
+  output_stream: "output_image_frame"
+}
