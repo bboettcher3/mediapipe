@@ -38,7 +38,7 @@ cc_library(
 
 mediapipe_binary_graph(
     name = "face_effect_gpu_binary_graph",
-    graph = "face_effect_gpu.pbtxt",
+    graph = "face_effect_gpu_custom.pbtxt",
     output_name = "face_effect_gpu.binarypb",
     deps = [":face_effect_gpu_deps"],
 )

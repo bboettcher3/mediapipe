@@ -3,12 +3,6 @@
 # GPU buffer. (GpuBuffer)
 input_stream: "input_video"
 
-# Boolean flag, which indicates whether the Facepaint effect is selected. (bool)
-#
-# If `true`, the Facepaint effect will be rendered.
-# If `false`, the Glasses effect will be rendered.
-input_stream: "is_facepaint_effect_selected"
-
 # Output image with rendered results. (GpuBuffer)
 output_stream: "output_video"
 
@@ -83,49 +77,13 @@ node {
   output_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
 }
 
-# Decides whether to render the Facepaint effect based on the
-# `is_facepaint_effect_selected` flag value.
-node {
-  calculator: "GateCalculator"
-  input_stream: "throttled_input_video"
-  input_stream: "multi_face_geometry"
-  input_stream: "ALLOW:is_facepaint_effect_selected"
-  output_stream: "facepaint_effect_throttled_input_video"
-  output_stream: "facepaint_effect_multi_face_geometry"
-}
-
-# Renders the Facepaint effect.
-node {
-  calculator: "FaceGeometryEffectRendererCalculator"
-  input_side_packet: "ENVIRONMENT:environment"
-  input_stream: "IMAGE_GPU:facepaint_effect_throttled_input_video"
-  input_stream: "MULTI_FACE_GEOMETRY:facepaint_effect_multi_face_geometry"
-  output_stream: "IMAGE_GPU:facepaint_effect_output_video"
-  node_options: {
-    [type.googleapis.com/mediapipe.FaceGeometryEffectRendererCalculatorOptions] {
-      effect_texture_path: "mediapipe/graphs/face_effect/data/facepaint.pngblob"
-    }
-  }
-}
-
-# Decides whether to render the Glasses effect based on the
-# `is_facepaint_effect_selected` flag value.
-node {
-  calculator: "GateCalculator"
-  input_stream: "throttled_input_video"
-  input_stream: "multi_face_geometry"
-  input_stream: "DISALLOW:is_facepaint_effect_selected"
-  output_stream: "glasses_effect_throttled_input_video"
-  output_stream: "glasses_effect_multi_face_geometry"
-}
-
 # Renders the Glasses effect.
 node {
   calculator: "FaceGeometryEffectRendererCalculator"
   input_side_packet: "ENVIRONMENT:environment"
-  input_stream: "IMAGE_GPU:glasses_effect_throttled_input_video"
-  input_stream: "MULTI_FACE_GEOMETRY:glasses_effect_multi_face_geometry"
-  output_stream: "IMAGE_GPU:glasses_effect_output_video"
+  input_stream: "IMAGE_GPU:throttled_input_video"
+  input_stream: "MULTI_FACE_GEOMETRY:multi_face_geometry"
+  output_stream: "IMAGE_GPU:output_video"
   node_options: {
     [type.googleapis.com/mediapipe.FaceGeometryEffectRendererCalculatorOptions] {
       effect_texture_path: "mediapipe/graphs/face_effect/data/glasses.pngblob"
@@ -134,11 +92,9 @@ node {
   }
 }
 
-# Decides which of the Facepaint or the Glasses rendered results should be sent
-# as the output GPU frame.
-node {
-  calculator: "ImmediateMuxCalculator"
-  input_stream: "facepaint_effect_output_video"
-  input_stream: "glasses_effect_output_video"
-  output_stream: "output_video"
+# Convert an input image (GpuBuffer or ImageFrame) to ImageFrame.
+node: {
+  calculator: "GpuBufferToImageFrameCalculator"
+  input_stream: "output_video"
+  output_stream: "output_image_frame"
 }
