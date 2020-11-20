@@ -32,10 +32,17 @@ node {
   output_stream: "throttled_input_video"
 }
 
+# Convert an input image (ImageFrame) to GpuBuffer.
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "throttled_input_video"
+  output_stream: "throttled_input_video_gpu"
+}
+
 # Subgraph that detects faces.
 node {
   calculator: "FaceDetectionFrontGpu"
-  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "IMAGE:throttled_input_video_gpu"
   output_stream: "DETECTIONS:face_detections"
 }
 
@@ -55,7 +62,7 @@ node {
 # Draws annotations and overlays them on top of the input images.
 node {
   calculator: "AnnotationOverlayCalculator"
-  input_stream: "IMAGE_GPU:throttled_input_video"
+  input_stream: "IMAGE_GPU:throttled_input_video_gpu"
   input_stream: "render_data"
   output_stream: "IMAGE_GPU:output_video"
 }

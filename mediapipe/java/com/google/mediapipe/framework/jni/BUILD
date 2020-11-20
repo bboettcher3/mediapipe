@@ -96,6 +96,8 @@ cc_library(
         "@eigen_archive//:eigen",
         "//mediapipe/framework:camera_intrinsics",
         "//mediapipe/framework/formats:image_frame",
+        "//mediapipe/util:image_frame_util",
+        "//mediapipe/framework/formats:yuv_image",
         "//mediapipe/framework/formats:matrix",
         "//mediapipe/framework/formats:video_stream_header",
         "//mediapipe/framework/stream_handler:fixed_size_input_stream_handler",

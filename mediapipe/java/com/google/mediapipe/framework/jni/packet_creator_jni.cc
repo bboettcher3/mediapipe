@@ -21,6 +21,8 @@
 #include "mediapipe/framework/camera_intrinsics.h"
 #include "mediapipe/framework/formats/image_format.pb.h"
 #include "mediapipe/framework/formats/image_frame.h"
+#include "mediapipe/util/image_frame_util.h"
+#include "mediapipe/framework/formats/yuv_image.h"
 #include "mediapipe/framework/formats/matrix.h"
 #include "mediapipe/framework/formats/time_series_header.pb.h"
 #include "mediapipe/framework/formats/video_stream_header.h"
@@ -178,6 +180,30 @@ JNIEXPORT jlong JNICALL PACKET_CREATOR_METHOD(nativeCreateRgbaImageFrame)(
   std::memcpy(image_frame->MutablePixelData(), rgba_data,
               image_frame->PixelDataSize());
   mediapipe::Packet packet = mediapipe::Adopt(image_frame.release());
+  return CreatePacketWithContext(context, packet);
+}
+
+JNIEXPORT jlong JNICALL PACKET_CREATOR_METHOD(nativeCreateYuvImageFrame)(
+    JNIEnv* env, jobject thiz, jlong context, jobject y_byte_buffer,
+    jobject u_byte_buffer, jobject v_byte_buffer, jint width, jint height) {
+  uint8* y_data = (uint8*)env->GetDirectBufferAddress(y_byte_buffer);
+  uint8* u_data = (uint8*)env->GetDirectBufferAddress(u_byte_buffer);
+  uint8* v_data = (uint8*)env->GetDirectBufferAddress(v_byte_buffer);
+  const int uv_width = (width + 1) / 2;
+  const int uv_height = (height + 1) / 2;
+  // Align y_stride and uv_stride on 16-byte boundaries.
+  const int y_stride = (width + 15) & ~15;
+  const int uv_stride = (uv_width + 15) & ~15;
+  const int y_size = y_stride * height;
+  const int uv_size = uv_stride * uv_height;
+  mediapipe::YUVImage yuvImage;
+  yuvImage.Initialize(libyuv::FOURCC_I420, nullptr, y_data, y_stride, u_data,
+      uv_stride, v_data, uv_stride, width, height, 8);
+  auto imageFrame = absl::make_unique<::mediapipe::ImageFrame>(
+      mediapipe::ImageFormat::SRGBA, width, height,
+      ::mediapipe::ImageFrame::kGlDefaultAlignmentBoundary);
+  mediapipe::image_frame_util::YUVImageToImageFrame(yuvImage, imageFrame.get(), false);
+  mediapipe::Packet packet = mediapipe::Adopt(imageFrame.release());
   return CreatePacketWithContext(context, packet);
 }
 
