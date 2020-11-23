@@ -64,6 +64,10 @@ void ImageFrameToYUVNV12Image(const ImageFrame& image_frame,
 void YUVImageToImageFrame(const YUVImage& yuv_image, ImageFrame* image_frame,
                           bool use_bt709 = false);
 
+// Convert YV planar buffers to an SRGBA ImageFrame.
+void YUVToRgbaImageFrame(uint8* yData, uint8* uData, uint8* vData,
+  int uvStride, int width, int height, ImageFrame* image_frame);
+
 // Convert sRGB values into MPEG YCbCr values.  Notice that MPEG YCbCr
 // values use a smaller range of values than JPEG YCbCr.  The conversion
 // values used are those from ITU-R BT.601 (which are the same as ITU-R

@@ -5,6 +5,8 @@
 
 # Images coming into and out of the graph.
 input_stream: "input_video"
+input_stream: "image_rotation"
+input_stream: "flip_x"
 output_stream: "output_video"
 
 # Max number of hands to detect/process. (int)
@@ -31,10 +33,33 @@ node {
   output_stream: "throttled_input_video"
 }
 
+# Convert an input image (ImageFrame) to GpuBuffer.
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "throttled_input_video"
+  output_stream: "throttled_input_video_gpu"
+}
+
+node: {
+  calculator: "ImageTransformationCalculator"
+  input_stream: "IMAGE_GPU:throttled_input_video_gpu"
+  input_stream: "ROTATION_DEGREES:image_rotation"
+  input_stream: "FLIP_HORIZONTALLY:flip_x"
+  input_stream_handler {
+    input_stream_handler: "ImmediateInputStreamHandler"
+  }
+  output_stream: "IMAGE_GPU:throttled_transformed_input_video_gpu"
+  node_options: {
+    [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
+      rotation_mode: 4
+    }
+  }
+}
+
 # Detects/tracks hand landmarks.
 node {
   calculator: "HandLandmarkTrackingGpu"
-  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "IMAGE:throttled_transformed_input_video_gpu"
   input_side_packet: "NUM_HANDS:num_hands"
   output_stream: "LANDMARKS:hand_landmarks"
   output_stream: "RECOGNIZED_HAND_GESTURE:recognized_hand_gesture"
@@ -48,7 +73,7 @@ node {
 # images (see hand_renderer_gpu.pbtxt).
 node {
   calculator: "HandRendererSubgraph"
-  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "IMAGE:throttled_transformed_input_video_gpu"
   input_stream: "DETECTIONS:palm_detections"
   input_stream: "LANDMARKS:hand_landmarks"
   input_stream: "HANDEDNESS:handedness"

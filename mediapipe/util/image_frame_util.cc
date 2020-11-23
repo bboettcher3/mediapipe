@@ -162,6 +162,59 @@ void YUVImageToImageFrame(const YUVImage& yuv_image, ImageFrame* image_frame,
   CHECK_EQ(0, rv);
 }
 
+void YuvToRgbaBuffer(
+  uint8* yData,
+  uint8* uData,
+  uint8* vData,
+  uint8* rgba,
+  int uvStride,
+  int width,
+  int height
+) {
+  int uvPixelStride = uvStride / (width / 2);
+  int i = 0, j = 0, outp = 0, yp = 0, uvp = 0;
+  uint8 r, g, b, y, u, v;
+  while (j < height) {
+    uvp = uvStride * (j / 2);
+    i = 0;
+    while (i < width) {
+      y = yData[yp];
+      if (i % uvPixelStride == 0) {
+        u = uData[uvp + i];
+        v = vData[uvp + i];
+      }
+      r = 1.164 * (y - 16) + 1.596 * (v - 128);
+      g = 1.164 * (y - 16) - 0.813 * (v - 128) - 0.391 * (u - 128);
+      b = 1.164 * (y - 16) + 2.018 * (u - 128);
+      // Clamp values from 0-255
+      if (r < 0) { r = 0; } else if (r > 255) { r = 255; };
+      if (g < 0) { g = 0; } else if (g > 255) { g = 255; };
+      if (b < 0) { b = 0; } else if (b > 255) { b = 255; };
+      rgba[outp++] = r;
+      rgba[outp++] = g;
+      rgba[outp++] = b;
+      rgba[outp++] = 255;
+      i++;
+      yp++;
+    }
+    j++;
+  }
+}
+
+void YUVToRgbaImageFrame(uint8* yData,
+  uint8* uData,
+  uint8* vData,
+  int uvStride,
+  int width,
+  int height,
+  ImageFrame* image_frame
+) {
+  CHECK(image_frame);
+  YuvToRgbaBuffer(yData, uData, vData,
+                image_frame->MutablePixelData(),
+                uvStride, width, height);
+}
+
 void SrgbToMpegYCbCr(const uint8 r, const uint8 g, const uint8 b,  //
                      uint8* y, uint8* cb, uint8* cr) {
   // ITU-R BT.601 conversion from sRGB to YCbCr.

@@ -63,6 +63,7 @@ cc_library(
         "//mediapipe/calculators/core:constant_side_packet_calculator",
         "//mediapipe/calculators/core:flow_limiter_calculator",
         "//mediapipe/graphs/hand_tracking/subgraphs:hand_renderer_gpu",
+        "//mediapipe/calculators/image:image_transformation_calculator",
         "//mediapipe/modules/hand_landmark:hand_landmark_tracking_gpu",
     ],
 )
