@@ -17,7 +17,7 @@ nav_order: 1
 4. Let's say you would like to modify [pose tracking graph](https://github.com/Moodelizer/mediapipe/blob/development/mediapipe/graphs/pose_tracking/upper_body_pose_tracking_custom.pbtxt) to change the smoothing calculator velocity_scale from default value 10.0 to 15.0 to see if it affects
 the tracking performance. You'd make the change and start building the AAR. Note that you could always visulize the graph in the [web browser](https://viz.mediapipe.dev/)
 5. Run the Bazel build command to generate the AAR
-  * Our custom BUILD file was a modification from handdetectiongpu example Build, you could find it [here] (https://github.com/Moodelizer/mediapipe/blob/development/mediapipe/examples/android/src/java/com/google/mediapipe/apps/handdetectiongpu/BUILD), in order to build the final AAR, following the steps below:
+  * Our custom BUILD file was a modification from handdetectiongpu example Build, you could find it [here](https://github.com/Moodelizer/mediapipe/blob/development/mediapipe/examples/android/src/java/com/google/mediapipe/apps/handdetectiongpu/BUILD), in order to build the final AAR, following the steps below:
   * Run `cd path_to_mediapipe_repo_root/mediapipe/examples/android/src/java/com/google/mediapipe/apps` to go to right folder
   * Run `bazel build -c opt --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --linkopt="-s" --fat_apk_cpu=arm64-v8a,armeabi-v7a handdetectiongpu:mp_multi_input_aar`
   * Locate generated AAR file in `ls bazel-bin/mediapipe/examples/android/src/java/com/google/mediapipe/apps/handdetectiongpu/mp_multi_input_aar.aar`
