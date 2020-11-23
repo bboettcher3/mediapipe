@@ -7,6 +7,27 @@ nav_order: 1
 ![MediaPipe](docs/images/mediapipe_small.png)
 
 --------------------------------------------------------------------------------
+## Generate mediapipe Android Archive File (AAR) and detection binary file
+
+1. Fork this repository
+2. [Install dependencies](https://google.github.io/mediapipe/getting_started/install.html#installing-on-macos), make sure that tools/framework such as Bazel, OpenCV, FFmpeg are installed first
+3. Install Android Development SDK and Android NDK, if Android SDK and NDK are already installed (e.g., by Android Studio), set $ANDROID_HOME and $ANDROID_NDK_HOME to point to the installed SDK and NDK.
+  * `export ANDROID_HOME=<path to the Android SDK>`
+  * `export ANDROID_NDK_HOME=<path to the Android NDK>`
+4. Let's say you would like to modify [pose tracking graph](https://github.com/Moodelizer/mediapipe/blob/development/mediapipe/graphs/pose_tracking/upper_body_pose_tracking_custom.pbtxt) to change the smoothing calculator velocity_scale from default value 10.0 to 15.0 to see if it affects
+the tracking performance. You'd make the change and start building the AAR. Note that you could always visulize the graph in the [web browser](https://viz.mediapipe.dev/)
+5. Run the Bazel build command to generate the AAR
+  * Our custom BUILD file was a modification from handdetectiongpu example Build, you could find it [here] (https://github.com/Moodelizer/mediapipe/blob/development/mediapipe/examples/android/src/java/com/google/mediapipe/apps/handdetectiongpu/BUILD), in order to build the final AAR, following the steps below:
+  * Run `cd path_to_mediapipe_repo_root/mediapipe/examples/android/src/java/com/google/mediapipe/apps` to go to right folder
+  * Run `bazel build -c opt --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --linkopt="-s" --fat_apk_cpu=arm64-v8a,armeabi-v7a handdetectiongpu:mp_multi_input_aar`
+  * Locate generated AAR file in `ls bazel-bin/mediapipe/examples/android/src/java/com/google/mediapipe/apps/handdetectiongpu/mp_multi_input_aar.aar`
+  * Copy the AAR into app's Anroid Library `mp_multi_input_aar` in the Android project.
+6. Build the relevant binary graph and copy the assets into `app/src/main/assets`
+  * Run `cd path_to_mediapipe_repo_root/`
+  * Run `bazel build -c opt mediapipe/graphs/pose_tracking:mobile_upper_body_pose_tracking_gpu_binary_graph`
+  * Locate generated binary graph file in `ls bazel-bin/mediapipe/graphs/pose_tracking/mobile_upper_body_pose_tracking_gpu_binary_graph.binarypb`
+7. (Optional) When adding a new detection, often it'd also need to copy the tflite model into Android Studio project's assets folder.
+8. Now the output stream from mediapipe should be up for grab inside of Android Studio, time to build Android App!
 
 ## Live ML anywhere
 
