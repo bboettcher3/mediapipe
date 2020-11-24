@@ -26,6 +26,7 @@ cc_library(
         "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
         "//mediapipe/modules/face_detection:face_detection_front_cpu",
         "//mediapipe/modules/face_detection:face_detection_front_gpu",
+        "//mediapipe/calculators/image:image_transformation_calculator",
     ],
 )
 

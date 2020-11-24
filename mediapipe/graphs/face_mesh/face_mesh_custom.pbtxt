@@ -2,6 +2,8 @@
 
 # GPU buffer. (GpuBuffer)
 input_stream: "input_video"
+input_stream: "image_rotation"
+input_stream: "flip_x"
 
 # Max number of faces to detect/process. (int)
 input_side_packet: "num_faces"
@@ -10,10 +12,33 @@ input_side_packet: "num_faces"
 # landmarks. (std::vector<NormalizedLandmarkList>)
 output_stream: "multi_face_landmarks"
 
+# Convert an input image (ImageFrame) to GpuBuffer.
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "input_video"
+  output_stream: "input_video_gpu"
+}
+
+node: {
+  calculator: "ImageTransformationCalculator"
+  input_stream: "IMAGE_GPU:input_video_gpu"
+  input_stream: "ROTATION_DEGREES:image_rotation"
+  input_stream: "FLIP_HORIZONTALLY:flip_x"
+  input_stream_handler {
+    input_stream_handler: "ImmediateInputStreamHandler"
+  }
+  output_stream: "IMAGE_GPU:transformed_input_video_gpu"
+  node_options: {
+    [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
+      rotation_mode: 4
+    }
+  }
+}
+
 # Subgraph that detects faces and corresponding landmarks.
 node {
   calculator: "FaceLandmarkFrontGpu"
-  input_stream: "IMAGE:input_video"
+  input_stream: "IMAGE:transformed_input_video_gpu"
   input_side_packet: "NUM_FACES:num_faces"
   output_stream: "LANDMARKS:multi_face_landmarks"
   output_stream: "ROIS_FROM_LANDMARKS:face_rects_from_landmarks"

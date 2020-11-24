@@ -2,6 +2,8 @@
 
 # GPU buffer. (GpuBuffer)
 input_stream: "input_video"
+input_stream: "image_rotation"
+input_stream: "flip_x"
 
 # Output image with rendered results. (GpuBuffer)
 output_stream: "output_video"
@@ -29,10 +31,33 @@ node {
   output_stream: "throttled_input_video"
 }
 
+# Convert an input image (ImageFrame) to GpuBuffer.
+node: {
+  calculator: "ImageFrameToGpuBufferCalculator"
+  input_stream: "throttled_input_video"
+  output_stream: "throttled_input_video_gpu"
+}
+
+node: {
+  calculator: "ImageTransformationCalculator"
+  input_stream: "IMAGE_GPU:throttled_input_video_gpu"
+  input_stream: "ROTATION_DEGREES:image_rotation"
+  input_stream: "FLIP_HORIZONTALLY:flip_x"
+  input_stream_handler {
+    input_stream_handler: "ImmediateInputStreamHandler"
+  }
+  output_stream: "IMAGE_GPU:throttled_transformed_input_video_gpu"
+  node_options: {
+    [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
+      rotation_mode: 4
+    }
+  }
+}
+
 # Subgraph that detects poses and corresponding landmarks.
 node {
   calculator: "PoseLandmarkUpperBodyGpu"
-  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "IMAGE:throttled_transformed_input_video_gpu"
   output_stream: "LANDMARKS:pose_landmarks"
   output_stream: "DETECTION:pose_detection"
   output_stream: "ROI_FROM_LANDMARKS:roi_from_landmarks"
@@ -41,7 +66,7 @@ node {
 # Calculates size of the image.
 node {
   calculator: "ImagePropertiesCalculator"
-  input_stream: "IMAGE_GPU:throttled_input_video"
+  input_stream: "IMAGE_GPU:throttled_transformed_input_video_gpu"
   output_stream: "SIZE:image_size"
 }
 
@@ -64,7 +89,7 @@ node {
 # Subgraph that renders pose-landmark annotation onto the input image.
 node {
   calculator: "UpperBodyPoseRendererGpu"
-  input_stream: "IMAGE:throttled_input_video"
+  input_stream: "IMAGE:throttled_transformed_input_video_gpu"
   input_stream: "LANDMARKS:pose_landmarks_smoothed"
   input_stream: "ROI:roi_from_landmarks"
   input_stream: "DETECTION:pose_detection"
