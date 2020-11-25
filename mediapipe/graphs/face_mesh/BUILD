@@ -58,6 +58,7 @@ cc_library(
         "//mediapipe/calculators/core:flow_limiter_calculator",
         "//mediapipe/modules/face_landmark:face_landmark_front_gpu",
         "//mediapipe/calculators/image:image_transformation_calculator",
+        "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
     ],
 )
 

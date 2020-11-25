@@ -33,6 +33,7 @@ cc_library(
         "//mediapipe/modules/face_detection:face_detection_front_cpu",
         "//mediapipe/modules/face_detection:face_detection_front_gpu",
         "//mediapipe/gpu:gpu_buffer_to_image_frame_calculator",
+        "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
         "//mediapipe/calculators/image:image_transformation_calculator",
     ],
 )

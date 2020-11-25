@@ -66,6 +66,7 @@ cc_library(
         "//mediapipe/graphs/pose_tracking/subgraphs:upper_body_pose_renderer_gpu",
         "//mediapipe/modules/pose_landmark:pose_landmark_upper_body_gpu",
         "//mediapipe/calculators/image:image_transformation_calculator",
+        "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
     ],
 )
 
