@@ -319,13 +319,11 @@ mediapipe::Status ImageTransformationCalculator::Process(
   // Override values if specified so.
   if (cc->Inputs().HasTag("ROTATION_DEGREES") &&
       !cc->Inputs().Tag("ROTATION_DEGREES").IsEmpty()) {
-    LOG(INFO) << "ROTATION_DEGREES." << cc->Inputs().Tag("ROTATION_DEGREES").Get<int>();
     rotation_ =
         DegreesToRotationMode(cc->Inputs().Tag("ROTATION_DEGREES").Get<int>());
   }
   if (cc->Inputs().HasTag("FLIP_HORIZONTALLY") &&
       !cc->Inputs().Tag("FLIP_HORIZONTALLY").IsEmpty()) {
-    LOG(INFO) << "FLIP_HORIZONTALLY." << cc->Inputs().Tag("FLIP_HORIZONTALLY").Get<bool>();
     flip_horizontally_ = cc->Inputs().Tag("FLIP_HORIZONTALLY").Get<bool>();
   }
   if (cc->Inputs().HasTag("FLIP_VERTICALLY") &&
