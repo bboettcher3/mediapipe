@@ -59,6 +59,7 @@ cc_library(
         "//mediapipe/modules/face_landmark:face_landmark_front_gpu",
         "//mediapipe/calculators/image:image_transformation_calculator",
         "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
+        "//mediapipe/framework/stream_handler:sync_set_input_stream_handler",
     ],
 )
 

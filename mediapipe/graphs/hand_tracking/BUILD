@@ -66,6 +66,7 @@ cc_library(
         "//mediapipe/calculators/image:image_transformation_calculator",
         "//mediapipe/modules/hand_landmark:hand_landmark_tracking_gpu",
         "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
+        "//mediapipe/framework/stream_handler:sync_set_input_stream_handler",
     ],
 )
 

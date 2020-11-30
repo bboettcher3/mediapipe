@@ -46,7 +46,18 @@ node: {
   input_stream: "ROTATION_DEGREES:image_rotation"
   input_stream: "FLIP_HORIZONTALLY:flip_x"
   input_stream_handler {
-    input_stream_handler: "ImmediateInputStreamHandler"
+    input_stream_handler: "SyncSetInputStreamHandler"
+    options {
+          [mediapipe.SyncSetInputStreamHandlerOptions.ext] {
+            sync_set {
+              tag_index: "ROTATION_DEGREES"
+              tag_index: "FLIP_HORIZONTALLY"
+            }
+            sync_set {
+              tag_index: "IMAGE_GPU"
+            }
+          }
+        }
   }
   output_stream: "IMAGE_GPU:throttled_transformed_input_video_gpu"
   node_options: {

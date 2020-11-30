@@ -35,6 +35,7 @@ cc_library(
         "//mediapipe/gpu:gpu_buffer_to_image_frame_calculator",
         "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
         "//mediapipe/calculators/image:image_transformation_calculator",
+        "//mediapipe/framework/stream_handler:sync_set_input_stream_handler",
     ],
 )
 
