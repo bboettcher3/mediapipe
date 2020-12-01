@@ -21,7 +21,8 @@
 #include "mediapipe/framework/port/ret_check.h"
 #include "mediapipe/framework/port/status.h"
 #include "mediapipe/gpu/scale_mode.pb.h"
-
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #if !defined(MEDIAPIPE_DISABLE_GPU)
 #include "mediapipe/gpu/gl_calculator_helper.h"
 #include "mediapipe/gpu/gl_quad_renderer.h"
@@ -187,6 +188,7 @@ class ImageTransformationCalculator : public CalculatorBase {
   mediapipe::ScaleMode_Mode scale_mode_;
   bool flip_horizontally_ = false;
   bool flip_vertically_ = false;
+  absl::Time start;
 
   bool use_gpu_ = false;
 #if !defined(MEDIAPIPE_DISABLE_GPU)
@@ -317,6 +319,8 @@ mediapipe::Status ImageTransformationCalculator::Open(CalculatorContext* cc) {
 mediapipe::Status ImageTransformationCalculator::Process(
     CalculatorContext* cc) {
   // Override values if specified so.
+start = absl::Now();
+
   if (cc->Inputs().HasTag("ROTATION_DEGREES") &&
       !cc->Inputs().Tag("ROTATION_DEGREES").IsEmpty()) {
     rotation_ =
@@ -478,6 +482,7 @@ mediapipe::Status ImageTransformationCalculator::RenderCpu(
   cc->Outputs()
       .Tag(kImageFrameTag)
       .Add(output_frame.release(), cc->InputTimestamp());
+  LOG(INFO) << "Ellapsed time for image processing for CPU: " << absl::Now() - start << "\n;";
 
   return mediapipe::OkStatus();
 }
@@ -568,6 +573,7 @@ mediapipe::Status ImageTransformationCalculator::RenderGpu(
   cc->Outputs().Tag(kGpuBufferTag).Add(output.release(), cc->InputTimestamp());
 
 #endif  //  !MEDIAPIPE_DISABLE_GPU
+  LOG(INFO) << "Ellapsed time for image processing for gpu: " << absl::Now() - start << "\n;";
 
   return mediapipe::OkStatus();
 }
