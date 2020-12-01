@@ -82,6 +82,12 @@ JNIEXPORT void JNICALL GRAPH_METHOD(nativeMovePacketToInputStream)(
     JNIEnv* env, jobject thiz, jlong context, jstring stream_name, jlong packet,
     jlong timestamp);
 
+JNIEXPORT void JNICALL GRAPH_METHOD(nativeSendInputYuvFrame)(
+    JNIEnv* env, jobject thiz, jlong context, jlong timestamp,
+    jobject y_byte_buffer, jobject u_byte_buffer, jobject v_byte_buffer,
+    jint uv_stride, jint width, jint height,
+    jint lensRotation, jboolean shouldFlipX, jboolean shouldSendLens);
+
 JNIEXPORT void JNICALL GRAPH_METHOD(nativeSetGraphInputStreamBlockingMode)(
     JNIEnv* env, jobject thiz, jlong context, jboolean mode);
 

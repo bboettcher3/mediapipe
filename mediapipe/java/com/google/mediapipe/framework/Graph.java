@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.nio.ByteBuffer;
 
 /**
  * MediaPipe-related context.
@@ -366,6 +367,31 @@ public class Graph {
   }
 
   /**
+   * Moodelizer Custom: Adds one frame into the graph input video stream based on the graph stream input mode. Also
+   * simultaneously yields ownership over to the graph stream, so additional memory optimizations
+   * are possible. When the function ends normally, the packet will be consumed and should no longer
+   * be referenced. When the function ends with MediaPipeException, the packet will remain
+   * unaffected, so this call may be retried later.
+   *
+   * @param streamName the name of the input stream.
+   * @param packet the mediapipe packet.
+   * @param timestamp the timestamp of the packet, although not enforced, the unit is normally
+   *     microsecond.
+   * @throws MediaPipeException for any error status.
+   */
+  public synchronized void sendInputYuvFrame(
+      long timestamp, ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer,
+      int uvStride, int width, int height, int lensRotation, boolean shouldFlipX, boolean shouldSendLens) {
+    Preconditions.checkState(
+        nativeGraphHandle != 0, "Invalid context, tearDown() might have been called.");
+    if (graphRunning) {
+      // We perform the packet creation and sending all natively for performance
+      nativeSendInputYuvFrame(nativeGraphHandle, timestamp, yBuffer, uBuffer, vBuffer, uvStride, width, height,
+          lensRotation, shouldFlipX, shouldSendLens);
+    }
+  }
+
+  /**
    * Closes the specified input stream.
    * @throws MediaPipeException for any error status.
    */
@@ -608,6 +634,10 @@ public class Graph {
 
   private native void nativeMovePacketToInputStream(
       long context, String streamName, long packet, long timestamp);
+
+  private native void nativeSendInputYuvFrame(long context, long timestamp,
+      ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int uvStride, int width, int height,
+      int lensRotation, boolean shouldFlipX, boolean shouldSendLens);
 
   private native void nativeSetGraphInputStreamBlockingMode(long context, boolean mode);
 

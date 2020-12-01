@@ -19,6 +19,8 @@
 #include "mediapipe/framework/calculator_framework.h"
 #include "mediapipe/framework/port/canonical_errors.h"
 #include "mediapipe/framework/port/logging.h"
+#include "mediapipe/framework/formats/image_frame.h"
+#include "mediapipe/util/image_frame_util.h"
 #include "mediapipe/java/com/google/mediapipe/framework/jni/class_registry.h"
 #include "mediapipe/java/com/google/mediapipe/framework/jni/graph.h"
 #include "mediapipe/java/com/google/mediapipe/framework/jni/jni_util.h"
@@ -27,6 +29,23 @@ using mediapipe::android::JStringToStdString;
 using mediapipe::android::ThrowIfError;
 
 namespace {
+template <class T>
+int64_t CreatePacketScalar(jlong context, const T& value) {
+  mediapipe::android::Graph* mediapipe_graph =
+      reinterpret_cast<mediapipe::android::Graph*>(context);
+  mediapipe::Packet packet = mediapipe::Adopt(new T(value));
+  return mediapipe_graph->WrapPacketIntoContext(packet);
+}
+
+// Creates a new internal::PacketWithContext object, and returns the native
+// handle.
+int64_t CreatePacketWithContext(jlong context,
+                                const mediapipe::Packet& packet) {
+  mediapipe::android::Graph* mediapipe_graph =
+      reinterpret_cast<mediapipe::android::Graph*>(context);
+  return mediapipe_graph->WrapPacketIntoContext(packet);
+}
+
 mediapipe::Status AddSidePacketsIntoGraph(
     mediapipe::android::Graph* mediapipe_graph, JNIEnv* env,
     jobjectArray stream_names, jlongArray packets) {
@@ -250,6 +269,46 @@ JNIEXPORT void JNICALL GRAPH_METHOD(nativeMovePacketToInputStream)(
       env, mediapipe_graph->SetTimestampAndMovePacketToInputStream(
                JStringToStdString(env, stream_name),
                static_cast<int64_t>(packet), static_cast<int64_t>(timestamp)));
+}
+
+JNIEXPORT void JNICALL GRAPH_METHOD(nativeSendInputYuvFrame)(
+    JNIEnv* env, jobject thiz, jlong context, jlong timestamp,
+    jobject y_byte_buffer, jobject u_byte_buffer, jobject v_byte_buffer,
+    jint uv_stride, jint width, jint height,
+    jint lensRotation, jboolean shouldFlipX, jboolean shouldSendLens) {
+  mediapipe::android::Graph* mediapipe_graph =
+      reinterpret_cast<mediapipe::android::Graph*>(context);
+
+  uint64_t curTs = static_cast<int64_t>(timestamp);
+
+  if (shouldSendLens) {
+    // Create flip x packet
+    uint64_t flipPacket = CreatePacketScalar<bool>(context, shouldFlipX);
+    uint64_t rotationPacket = CreatePacketScalar<int>(context, lensRotation);
+    ThrowIfError(
+      env, mediapipe_graph->SetTimestampAndMovePacketToInputStream("flip_x",
+               flipPacket, curTs));
+    ThrowIfError(
+      env, mediapipe_graph->SetTimestampAndMovePacketToInputStream("image_rotation",
+               rotationPacket, curTs));
+    curTs++;
+  }
+
+  uint8* y_data = (uint8*)env->GetDirectBufferAddress(y_byte_buffer);
+  uint8* u_data = (uint8*)env->GetDirectBufferAddress(u_byte_buffer);
+  uint8* v_data = (uint8*)env->GetDirectBufferAddress(v_byte_buffer);
+  auto imageFrame = absl::make_unique<::mediapipe::ImageFrame>(
+      mediapipe::ImageFormat::SRGBA, width, height, 8);
+  mediapipe::image_frame_util::YUVToRgbaImageFrame(y_data,
+                              u_data, v_data, uv_stride,
+                              width, height, imageFrame.get());
+  mediapipe::Packet imagePacket = mediapipe::Adopt(imageFrame.release());
+  uint64_t imagePacketHandle = CreatePacketWithContext(context, imagePacket);
+
+  ThrowIfError(
+      env, mediapipe_graph->SetTimestampAndMovePacketToInputStream(
+               "input_video",
+               imagePacketHandle, curTs));
 }
 
 JNIEXPORT void JNICALL GRAPH_METHOD(nativeSetGraphInputStreamBlockingMode)(
