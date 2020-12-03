@@ -274,8 +274,9 @@ JNIEXPORT void JNICALL GRAPH_METHOD(nativeMovePacketToInputStream)(
 JNIEXPORT void JNICALL GRAPH_METHOD(nativeSendInputYuvFrame)(
     JNIEnv* env, jobject thiz, jlong context, jlong timestamp,
     jobject y_byte_buffer, jobject u_byte_buffer, jobject v_byte_buffer,
-    jint y_stride, jint u_stride, jint v_stride, jint width, jint height,
-    jint lensRotation, jboolean shouldFlipX, jboolean shouldSendLens) {
+    jint y_stride, jint u_stride, jint v_stride, jint uv_PixelStride,
+    jobject y_dest_byte_buffer, jobject u_dest_byte_buffer, jobject v_dest_byte_buffer,
+    jint width, jint height, jint lensRotation, jboolean shouldFlipX, jboolean shouldSendLens) {
   mediapipe::android::Graph* mediapipe_graph =
       reinterpret_cast<mediapipe::android::Graph*>(context);
 
@@ -297,10 +298,16 @@ JNIEXPORT void JNICALL GRAPH_METHOD(nativeSendInputYuvFrame)(
   uint8* y_data = (uint8*)env->GetDirectBufferAddress(y_byte_buffer);
   uint8* u_data = (uint8*)env->GetDirectBufferAddress(u_byte_buffer);
   uint8* v_data = (uint8*)env->GetDirectBufferAddress(v_byte_buffer);
+
+  uint8* y_dest_data = (uint8*)env->GetDirectBufferAddress(y_dest_byte_buffer);
+  uint8* u_dest_data = (uint8*)env->GetDirectBufferAddress(u_dest_byte_buffer);
+  uint8* v_dest_data = (uint8*)env->GetDirectBufferAddress(v_dest_byte_buffer);
+
   auto imageFrame = absl::make_unique<::mediapipe::ImageFrame>(
       mediapipe::ImageFormat::SRGBA, width, height, 8);
   mediapipe::image_frame_util::YUVToRgbaImageFrame(y_data,
                               u_data, v_data, y_stride, u_stride, v_stride,
+                              uv_PixelStride, y_dest_data, u_dest_data, v_dest_data,
                               width, height, imageFrame.get());
   mediapipe::Packet imagePacket = mediapipe::Adopt(imageFrame.release());
   uint64_t imagePacketHandle = CreatePacketWithContext(context, imagePacket);

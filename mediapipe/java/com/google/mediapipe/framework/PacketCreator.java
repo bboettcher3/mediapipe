@@ -155,6 +155,17 @@ public class PacketCreator {
   }
 
   /**
+   * Creates a 4 channel RGBA ImageFrame packet from a YUV_420_888 buffer. Can be used for debugging so that Android client could view the packet bitmap
+   */
+  public Packet createYuvImageFrame(ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int yStride, int uStride, int vStride, int uvPixelStride, ByteBuffer yDestBuffer, ByteBuffer uDestBuffer, ByteBuffer vDestBuffer, int width, int height) {
+    if (yBuffer.capacity() != width * height) {
+      throw new RuntimeException("buffer doesn't have the correct size.");
+    }
+    return Packet.create(
+        nativeCreateYuvImageFrame(mediapipeGraph.getNativeHandle(), yBuffer, uBuffer, vBuffer, yStride, uStride, vStride, uvPixelStride, yDestBuffer, uDestBuffer, vDestBuffer, width, height));
+  }
+
+  /**
    * Creates a 1 channel float ImageFrame packet.
    *
    * <p>Use {@link ByteBuffer#allocateDirect} when allocating the buffer.
@@ -349,6 +360,9 @@ public class PacketCreator {
 
   private native long nativeCreateRgbaImageFrame(
       long context, ByteBuffer buffer, int width, int height);
+  private native long nativeCreateYuvImageFrame(
+      long context, ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int yStride, int uStride, int vStride,
+      int uvPixelStride, ByteBuffer yDestBuffer, ByteBuffer uDestBuffer, ByteBuffer vDestBuffer, int width, int height);
   private native long nativeCreateFloatImageFrame(
       long context, FloatBuffer buffer, int width, int height);
   private native long nativeCreateInt16(long context, short value);

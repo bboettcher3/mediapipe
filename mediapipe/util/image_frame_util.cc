@@ -208,18 +208,33 @@ void YUVToRgbaImageFrame(
         int yStride,
         int uStride,
         int vStride,
+        int uvPixelStride,
+        uint8* destYData,
+        uint8* destUData,
+        uint8* destVData,
         int width,
         int height,
         ImageFrame* image_frame
 ) {
   CHECK(image_frame);
   int rv;
+  // Convert Android 420 to I420 first
+  // https://bugs.chromium.org/p/libyuv/issues/detail?id=815&can=1&q=&sort=-id
+  rv = libyuv::Android420ToI420(yData, yStride,
+                                uData, uStride,
+                                vData, vStride,
+                                uvPixelStride,
+                                destYData, yStride,
+                                destUData, uStride,
+                                destVData, vStride,
+                                width, height);
+  CHECK_EQ(0, rv);
   // libyuv reverses the byte order, so if ABGR is word order, the actual byte order is RBGA, see
   // https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/master/source/row_common.cc#544
   // https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/master/docs/formats.md#the-argb-fourcc
-  rv = libyuv::I420ToABGR(yData, yStride,  //
-                         uData, uStride,  //
-                         vData, vStride,  //
+  rv = libyuv::I420ToABGR(destYData, yStride,  //
+                         destUData, uStride,  //
+                         destVData, vStride,  //
                          image_frame->MutablePixelData(),
                          image_frame->WidthStep(), width, height);
   CHECK_EQ(0, rv);

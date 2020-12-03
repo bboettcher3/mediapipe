@@ -182,6 +182,29 @@ JNIEXPORT jlong JNICALL PACKET_CREATOR_METHOD(nativeCreateRgbaImageFrame)(
   return CreatePacketWithContext(context, packet);
 }
 
+JNIEXPORT jlong JNICALL PACKET_CREATOR_METHOD(nativeCreateYuvImageFrame)(
+    JNIEnv* env, jobject thiz, jlong context, jobject y_byte_buffer,
+    jobject u_byte_buffer, jobject v_byte_buffer, jint y_stride, jint u_stride, jint v_stride,
+    jint uv_PixelStride, jobject y_dest_byte_buffer, jobject u_dest_byte_buffer, jobject v_dest_byte_buffer,
+    jint width, jint height) {
+  uint8* y_data = (uint8*)env->GetDirectBufferAddress(y_byte_buffer);
+  uint8* u_data = (uint8*)env->GetDirectBufferAddress(u_byte_buffer);
+  uint8* v_data = (uint8*)env->GetDirectBufferAddress(v_byte_buffer);
+
+  uint8* y_dest_data = (uint8*)env->GetDirectBufferAddress(y_dest_byte_buffer);
+  uint8* u_dest_data = (uint8*)env->GetDirectBufferAddress(u_dest_byte_buffer);
+  uint8* v_dest_data = (uint8*)env->GetDirectBufferAddress(v_dest_byte_buffer);
+
+  auto imageFrame = absl::make_unique<::mediapipe::ImageFrame>(
+      mediapipe::ImageFormat::SRGBA, width, height, 8);
+  mediapipe::image_frame_util::YUVToRgbaImageFrame(y_data,
+                              u_data, v_data, y_stride, u_stride, v_stride, uv_PixelStride,
+                              y_dest_data, u_dest_data, v_dest_data,
+                              width, height, imageFrame.get());
+  mediapipe::Packet packet = mediapipe::Adopt(imageFrame.release());
+  return CreatePacketWithContext(context, packet);
+}
+
 static mediapipe::Packet createAudioPacket(const uint8_t* audio_sample,
                                            int num_samples, int num_channels) {
   std::unique_ptr<mediapipe::Matrix> matrix(

@@ -39,6 +39,12 @@ JNIEXPORT jlong JNICALL PACKET_CREATOR_METHOD(nativeCreateRgbaImageFrame)(
     JNIEnv* env, jobject thiz, jlong context, jobject byte_buffer, jint width,
     jint height);
 
+JNIEXPORT jlong JNICALL PACKET_CREATOR_METHOD(nativeCreateYuvImageFrame)(
+    JNIEnv* env, jobject thiz, jlong context, jobject y_byte_buffer,
+    jobject u_byte_buffer, jobject v_byte_buffer, jint y_stride, jint u_stride, jint v_stride,
+    jint uv_PixelStride, jobject y_dest_byte_buffer, jobject u_dest_byte_buffer, jobject v_dest_byte_buffer,
+    jint width, jint height);
+
 JNIEXPORT jlong JNICALL PACKET_CREATOR_METHOD(nativeCreateRgbImageFromRgba)(
     JNIEnv* env, jobject thiz, jlong context, jobject byte_buffer, jint width,
     jint height);

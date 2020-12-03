@@ -66,7 +66,8 @@ void YUVImageToImageFrame(const YUVImage& yuv_image, ImageFrame* image_frame,
 
 // Convert YV planar buffers to an SRGBA ImageFrame.
 void YUVToRgbaImageFrame(uint8* yData, uint8* uData, uint8* vData,
-  int yStride, int uStride, int vStride, int width, int height, ImageFrame* image_frame);
+  int yStride, int uStride, int vStride, int uvPixelStride, uint8* destYData,
+  uint8* destUData, uint8* destVData, int width, int height, ImageFrame* image_frame);
 
 // Convert sRGB values into MPEG YCbCr values.  Notice that MPEG YCbCr
 // values use a smaller range of values than JPEG YCbCr.  The conversion
