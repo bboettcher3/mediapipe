@@ -8,20 +8,43 @@ input_stream: "flip_x"
 # Max number of faces to detect/process. (int)
 input_side_packet: "num_faces"
 
+# Output image with rendered results. (GpuBuffer)
+output_stream: "output_video"
 # Collection of detected/processed faces, each represented as a list of
 # landmarks. (std::vector<NormalizedLandmarkList>)
 output_stream: "multi_face_landmarks"
 
+# Throttles the images flowing downstream for flow control. It passes through
+# the very first incoming image unaltered, and waits for downstream nodes
+# (calculators and subgraphs) in the graph to finish their tasks before it
+# passes through another image. All images that come in while waiting are
+# dropped, limiting the number of in-flight images in most part of the graph to
+# 1. This prevents the downstream nodes from queuing up incoming images and data
+# excessively, which leads to increased latency and memory usage, unwanted in
+# real-time mobile applications. It also eliminates unnecessarily computation,
+# e.g., the output produced by a node may get dropped downstream if the
+# subsequent nodes are still busy processing previous inputs.
+node {
+  calculator: "FlowLimiterCalculator"
+  input_stream: "input_video"
+  input_stream: "FINISHED:output_video"
+  input_stream_info: {
+    tag_index: "FINISHED"
+    back_edge: true
+  }
+  output_stream: "throttled_input_video"
+}
+
 # Convert an input image (ImageFrame) to GpuBuffer.
 node: {
   calculator: "ImageFrameToGpuBufferCalculator"
-  input_stream: "input_video"
-  output_stream: "input_video_gpu"
+  input_stream: "throttled_input_video"
+  output_stream: "throttled_input_video_gpu"
 }
 
 node: {
   calculator: "ImageTransformationCalculator"
-  input_stream: "IMAGE_GPU:input_video_gpu"
+  input_stream: "IMAGE_GPU:throttled_input_video_gpu"
   input_stream: "ROTATION_DEGREES:image_rotation"
   input_stream: "FLIP_HORIZONTALLY:flip_x"
   input_stream_handler {
@@ -38,7 +61,7 @@ node: {
           }
         }
   }
-  output_stream: "IMAGE_GPU:transformed_input_video_gpu"
+  output_stream: "IMAGE_GPU:throttled_transformed_input_video_gpu"
   node_options: {
     [type.googleapis.com/mediapipe.ImageTransformationCalculatorOptions] {
       rotation_mode: 4
@@ -49,10 +72,20 @@ node: {
 # Subgraph that detects faces and corresponding landmarks.
 node {
   calculator: "FaceLandmarkFrontGpu"
-  input_stream: "IMAGE:transformed_input_video_gpu"
+  input_stream: "IMAGE:throttled_transformed_input_video_gpu"
   input_side_packet: "NUM_FACES:num_faces"
   output_stream: "LANDMARKS:multi_face_landmarks"
   output_stream: "ROIS_FROM_LANDMARKS:face_rects_from_landmarks"
   output_stream: "DETECTIONS:face_detections"
   output_stream: "ROIS_FROM_DETECTIONS:face_rects_from_detections"
+}
+
+# Subgraph that renders face-landmark annotation onto the input image.
+node {
+  calculator: "FaceRendererGpu"
+  input_stream: "IMAGE:throttled_transformed_input_video_gpu"
+  input_stream: "LANDMARKS:multi_face_landmarks"
+  input_stream: "NORM_RECTS:face_rects_from_landmarks"
+  input_stream: "DETECTIONS:face_detections"
+  output_stream: "IMAGE:output_video"
 }

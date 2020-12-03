@@ -60,6 +60,7 @@ cc_library(
         "//mediapipe/calculators/image:image_transformation_calculator",
         "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
         "//mediapipe/framework/stream_handler:sync_set_input_stream_handler",
+        "//mediapipe/graphs/face_mesh/subgraphs:face_renderer_gpu",
     ],
 )
 
