@@ -35,7 +35,6 @@ class GpuBufferToImageFrameCalculator : public CalculatorBase {
 
   ::mediapipe::Status Open(CalculatorContext* cc) override;
   ::mediapipe::Status Process(CalculatorContext* cc) override;
-    absl::Time start;
  private:
 #if !MEDIAPIPE_GPU_BUFFER_USE_CV_PIXEL_BUFFER
   GlCalculatorHelper helper_;
@@ -68,7 +67,6 @@ REGISTER_CALCULATOR(GpuBufferToImageFrameCalculator);
 
 ::mediapipe::Status GpuBufferToImageFrameCalculator::Process(
     CalculatorContext* cc) {
-     start = absl::Now();
   if (cc->Inputs().Index(0).Value().ValidateAsType<ImageFrame>().ok()) {
     cc->Outputs().Index(0).AddPacket(cc->Inputs().Index(0).Value());
     return ::mediapipe::OkStatus();
@@ -95,12 +93,10 @@ REGISTER_CALCULATOR(GpuBufferToImageFrameCalculator);
       cc->Outputs().Index(0).Add(frame.release(), cc->InputTimestamp());
       src.Release();
     });
-    LOG(INFO) << "Ellapsed time for gpu buffer to image frame cv pixel: " << absl::Now() - start << "\n;";
 #endif  // MEDIAPIPE_GPU_BUFFER_USE_CV_PIXEL_BUFFER
     return ::mediapipe::OkStatus();
   }
 #endif  // defined(HAVE_GPU_BUFFER)
-LOG(INFO) << "Ellapsed time for  gpu buffer to image frame have gpu buffer: " << absl::Now() - start << "\n;";
   return ::mediapipe::Status(::mediapipe::StatusCode::kInvalidArgument,
                              "Input packets must be ImageFrame or GpuBuffer.");
 }

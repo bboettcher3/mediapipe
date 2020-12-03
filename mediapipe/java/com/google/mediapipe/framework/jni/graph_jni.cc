@@ -274,7 +274,7 @@ JNIEXPORT void JNICALL GRAPH_METHOD(nativeMovePacketToInputStream)(
 JNIEXPORT void JNICALL GRAPH_METHOD(nativeSendInputYuvFrame)(
     JNIEnv* env, jobject thiz, jlong context, jlong timestamp,
     jobject y_byte_buffer, jobject u_byte_buffer, jobject v_byte_buffer,
-    jint uv_stride, jint width, jint height,
+    jint y_stride, jint u_stride, jint v_stride, jint width, jint height,
     jint lensRotation, jboolean shouldFlipX, jboolean shouldSendLens) {
   mediapipe::android::Graph* mediapipe_graph =
       reinterpret_cast<mediapipe::android::Graph*>(context);
@@ -300,7 +300,7 @@ JNIEXPORT void JNICALL GRAPH_METHOD(nativeSendInputYuvFrame)(
   auto imageFrame = absl::make_unique<::mediapipe::ImageFrame>(
       mediapipe::ImageFormat::SRGBA, width, height, 8);
   mediapipe::image_frame_util::YUVToRgbaImageFrame(y_data,
-                              u_data, v_data, uv_stride,
+                              u_data, v_data, y_stride, u_stride, v_stride,
                               width, height, imageFrame.get());
   mediapipe::Packet imagePacket = mediapipe::Adopt(imageFrame.release());
   uint64_t imagePacketHandle = CreatePacketWithContext(context, imagePacket);

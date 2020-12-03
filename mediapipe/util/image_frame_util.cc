@@ -201,18 +201,28 @@ void YuvToRgbaBuffer(
   }
 }
 
-void YUVToRgbaImageFrame(uint8* yData,
-  uint8* uData,
-  uint8* vData,
-  int uvStride,
-  int width,
-  int height,
-  ImageFrame* image_frame
+void YUVToRgbaImageFrame(
+        uint8* yData,
+        uint8* uData,
+        uint8* vData,
+        int yStride,
+        int uStride,
+        int vStride,
+        int width,
+        int height,
+        ImageFrame* image_frame
 ) {
   CHECK(image_frame);
-  YuvToRgbaBuffer(yData, uData, vData,
-                image_frame->MutablePixelData(),
-                uvStride, width, height);
+  int rv;
+  // libyuv reverses the byte order, so if ABGR is word order, the actual byte order is RBGA, see
+  // https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/master/source/row_common.cc#544
+  // https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/master/docs/formats.md#the-argb-fourcc
+  rv = libyuv::I420ToABGR(yData, yStride,  //
+                         uData, uStride,  //
+                         vData, vStride,  //
+                         image_frame->MutablePixelData(),
+                         image_frame->WidthStep(), width, height);
+  CHECK_EQ(0, rv);
 }
 
 void SrgbToMpegYCbCr(const uint8 r, const uint8 g, const uint8 b,  //

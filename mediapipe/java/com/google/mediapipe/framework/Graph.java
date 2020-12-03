@@ -380,13 +380,13 @@ public class Graph {
    * @throws MediaPipeException for any error status.
    */
   public synchronized void sendInputYuvFrame(
-      long timestamp, ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer,
-      int uvStride, int width, int height, int lensRotation, boolean shouldFlipX, boolean shouldSendLens) {
+      long timestamp, ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int yStride,
+      int uStride, int vStride, int width, int height, int lensRotation, boolean shouldFlipX, boolean shouldSendLens) {
     Preconditions.checkState(
         nativeGraphHandle != 0, "Invalid context, tearDown() might have been called.");
     if (graphRunning) {
       // We perform the packet creation and sending all natively for performance
-      nativeSendInputYuvFrame(nativeGraphHandle, timestamp, yBuffer, uBuffer, vBuffer, uvStride, width, height,
+      nativeSendInputYuvFrame(nativeGraphHandle, timestamp, yBuffer, uBuffer, vBuffer, yStride, uStride, vStride, width, height,
           lensRotation, shouldFlipX, shouldSendLens);
     }
   }
@@ -636,7 +636,7 @@ public class Graph {
       long context, String streamName, long packet, long timestamp);
 
   private native void nativeSendInputYuvFrame(long context, long timestamp,
-      ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int uvStride, int width, int height,
+      ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int yStride, int uStride, int vStride, int width, int height,
       int lensRotation, boolean shouldFlipX, boolean shouldSendLens);
 
   private native void nativeSetGraphInputStreamBlockingMode(long context, boolean mode);
