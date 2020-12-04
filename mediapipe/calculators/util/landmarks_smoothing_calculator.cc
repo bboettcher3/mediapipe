@@ -20,6 +20,8 @@
 #include "mediapipe/framework/timestamp.h"
 #include "mediapipe/util/filtering/relative_velocity_filter.h"
 
+#define ROLLING_BUFF_SIZE 3
+
 namespace mediapipe {
 
 namespace {
@@ -105,22 +107,22 @@ class RollingBufferFilter : public LandmarksFilter {
       // Keep presence as is.
       out_landmark->set_presence(in_landmarks.landmark(i).presence());
     }
-    bufIndex = (bufIndex + 1) % 5;
+    bufIndex = (bufIndex + 1) % ROLLING_BUFF_SIZE;
     return ::mediapipe::OkStatus();
   }
  private:
   float getAverage(float* buffer) {
     float sum = 0.0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < ROLLING_BUFF_SIZE; i++) {
       sum += buffer[i];
     }
-    return sum / 5;
+    return sum / ROLLING_BUFF_SIZE;
   }  
 
-  // Hardcoded window size to 5 (25 landmarks per frame)
-  float xBuffer[25][5];
-  float yBuffer[25][5];
-  float zBuffer[25][5];
+  // Hardcoded window size to ROLLING_BUFF_SIZE (25 landmarks per frame)
+  float xBuffer[25][ROLLING_BUFF_SIZE];
+  float yBuffer[25][ROLLING_BUFF_SIZE];
+  float zBuffer[25][ROLLING_BUFF_SIZE];
   int bufIndex = 0;
 };
 
