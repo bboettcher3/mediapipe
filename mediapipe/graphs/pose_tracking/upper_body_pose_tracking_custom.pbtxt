@@ -89,10 +89,7 @@ node {
   output_stream: "NORM_FILTERED_LANDMARKS:pose_landmarks_smoothed"
   node_options: {
     [type.googleapis.com/mediapipe.LandmarksSmoothingCalculatorOptions] {
-      velocity_filter: {
-        window_size: 5
-        velocity_scale: 10.0
-      }
+      no_filter: {}
     }
   }
 }

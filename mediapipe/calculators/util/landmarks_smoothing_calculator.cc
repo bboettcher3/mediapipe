@@ -81,6 +81,49 @@ class NoFilter : public LandmarksFilter {
   }
 };
 
+// Returns landmarks smoothed with a pure rolling average buffer
+class RollingBufferFilter : public LandmarksFilter {
+ public:
+  ::mediapipe::Status Apply(const NormalizedLandmarkList& in_landmarks,
+                            const std::pair<int, int>& image_size,
+                            const absl::Duration& timestamp,
+                            NormalizedLandmarkList* out_landmarks) override {
+    for (int i = 0; i < 25; ++i) {
+      xBuffer[i][bufIndex] = in_landmarks.landmark(i).x();
+      yBuffer[i][bufIndex] = in_landmarks.landmark(i).y();
+      zBuffer[i][bufIndex] = in_landmarks.landmark(i).z();
+
+      float xAvg = getAverage(xBuffer[i]);
+      float yAvg = getAverage(yBuffer[i]);
+      float zAvg = getAverage(zBuffer[i]);
+      NormalizedLandmark* out_landmark = out_landmarks->add_landmark();
+      out_landmark->set_x(xAvg);
+      out_landmark->set_y(yAvg);
+      out_landmark->set_z(zAvg);
+      // Keep visibility as is.
+      out_landmark->set_visibility(in_landmarks.landmark(i).visibility());
+      // Keep presence as is.
+      out_landmark->set_presence(in_landmarks.landmark(i).presence());
+    }
+    bufIndex = (bufIndex + 1) % 5;
+    return ::mediapipe::OkStatus();
+  }
+ private:
+  float getAverage(float* buffer) {
+    float sum = 0.0;
+    for (int i = 0; i < 5; i++) {
+      sum += buffer[i];
+    }
+    return sum / 5;
+  }  
+
+  // Hardcoded window size to 5 (25 landmarks per frame)
+  float xBuffer[25][5];
+  float yBuffer[25][5];
+  float zBuffer[25][5];
+  int bufIndex = 0;
+};
+
 // Please check RelativeVelocityFilter documentation for details.
 class VelocityFilter : public LandmarksFilter {
  public:
@@ -228,7 +271,7 @@ mediapipe::Status LandmarksSmoothingCalculator::Open(CalculatorContext* cc) {
   // Pick landmarks filter.
   const auto& options = cc->Options<LandmarksSmoothingCalculatorOptions>();
   if (options.has_no_filter()) {
-    landmarks_filter_ = new NoFilter();
+    landmarks_filter_ = new RollingBufferFilter();
   } else if (options.has_velocity_filter()) {
     landmarks_filter_ = new VelocityFilter(
         options.velocity_filter().window_size(),
