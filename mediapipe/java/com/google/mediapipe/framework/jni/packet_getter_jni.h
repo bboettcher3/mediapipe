@@ -106,6 +106,11 @@ JNIEXPORT jint JNICALL PACKET_GETTER_METHOD(nativeGetImageHeight)(JNIEnv* env,
 JNIEXPORT jboolean JNICALL PACKET_GETTER_METHOD(nativeGetImageData)(
     JNIEnv* env, jobject thiz, jlong packet, jobject byte_buffer);
 
+JNIEXPORT void JNICALL PACKET_GETTER_METHOD(nativeGetRgbaFromYuv)(
+    JNIEnv* env, jobject thiz, jobject y_byte_buffer, jobject u_byte_buffer, jobject v_byte_buffer,
+    jint y_stride, jint uv_stride, jint uv_PixelStride,
+    jint width, jint height, jobject rgba);
+
 // Before calling this, the byte_buffer needs to have the correct allocated
 // size.
 JNIEXPORT jboolean JNICALL PACKET_GETTER_METHOD(nativeGetRgbaFromRgb)(

@@ -69,6 +69,10 @@ void YUVToRgbaImageFrame(uint8* yData, uint8* uData, uint8* vData,
   int yStride, int uStride, int vStride, int uvPixelStride, uint8* destYData,
   uint8* destUData, uint8* destVData, int width, int height, ImageFrame* image_frame);
 
+void YUVToRgbaBuffer(uint8* yData, uint8* uData, uint8* vData,
+  int yStride, int uStride, int vStride, int uvPixelStride,
+  int width, int height, uint8* rgba);
+
 // Convert sRGB values into MPEG YCbCr values.  Notice that MPEG YCbCr
 // values use a smaller range of values than JPEG YCbCr.  The conversion
 // values used are those from ITU-R BT.601 (which are the same as ITU-R

@@ -17,6 +17,7 @@
 #include "mediapipe/framework/calculator.pb.h"
 #include "mediapipe/framework/formats/image_frame.h"
 #include "mediapipe/framework/formats/matrix.h"
+#include "mediapipe/util/image_frame_util.h"
 #include "mediapipe/framework/formats/time_series_header.pb.h"
 #include "mediapipe/framework/formats/video_stream_header.h"
 #include "mediapipe/framework/port/core_proto_inc.h"
@@ -309,6 +310,21 @@ JNIEXPORT jboolean JNICALL PACKET_GETTER_METHOD(nativeGetImageData)(
     }
   }
   return true;
+}
+
+JNIEXPORT void JNICALL PACKET_GETTER_METHOD(nativeGetRgbaFromYuv)(
+    JNIEnv* env, jobject thiz, jobject y_byte_buffer, jobject u_byte_buffer, jobject v_byte_buffer,
+    jint y_stride, jint uv_stride, jint uv_PixelStride,
+    jint width, jint height, jobject rgba) {
+  uint8* y_data = (uint8*)env->GetDirectBufferAddress(y_byte_buffer);
+  uint8* u_data = (uint8*)env->GetDirectBufferAddress(u_byte_buffer);
+  uint8* v_data = (uint8*)env->GetDirectBufferAddress(v_byte_buffer);
+
+  uint8* rgbaBuffer = (uint8*)env->GetDirectBufferAddress(rgba);
+
+  mediapipe::image_frame_util::YUVToRgbaBuffer(y_data,
+                              u_data, v_data, y_stride, uv_stride, uv_stride, uv_PixelStride,
+                              width, height, rgbaBuffer);
 }
 
 JNIEXPORT jboolean JNICALL PACKET_GETTER_METHOD(nativeGetRgbaFromRgb)(

@@ -183,6 +183,18 @@ public final class PacketGetter {
   }
 
   /**
+   * Creates a 4 channel RGBA ImageFrame packet from a YUV_420_888 buffer. Can be used for debugging so that Android client could view the packet bitmap
+   */
+  public static void getRgbaFromYuv(ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer,
+                                   int yStride, int uvStride, int uvPixelStride,
+                                   int width, int height, ByteBuffer rgba) {
+    if (yBuffer.capacity() != width * height) {
+      throw new RuntimeException("buffer doesn't have the correct size.");
+    }
+    nativeGetRgbaFromYuv(yBuffer, uBuffer, vBuffer, yStride, uvStride, uvPixelStride, width, height, rgba);
+  }
+
+  /**
    * Converts an RGB mediapipe image frame packet to an RGBA Byte buffer.
    *
    * <p>Use {@link ByteBuffer#allocateDirect} when allocating the buffer.
@@ -316,6 +328,9 @@ public final class PacketGetter {
   private static native int nativeGetImageWidth(long nativePacketHandle);
   private static native int nativeGetImageHeight(long nativePacketHandle);
   private static native boolean nativeGetImageData(long nativePacketHandle, ByteBuffer buffer);
+  private static native void nativeGetRgbaFromYuv(
+      ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int yStride, int uvStride, int uvPixelStride,
+      int width, int height, ByteBuffer rgba);
   private static native boolean nativeGetRgbaFromRgb(long nativePacketHandle, ByteBuffer buffer);
   // Retrieves the values that are in the VideoHeader.
   private static native int nativeGetVideoHeaderWidth(long nativepackethandle);

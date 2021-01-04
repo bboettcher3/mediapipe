@@ -240,6 +240,74 @@ void YUVToRgbaImageFrame(
   CHECK_EQ(0, rv);
 }
 
+void YUVToRgbaBuffer(
+        uint8* yData,
+        uint8* uData,
+        uint8* vData,
+        int yStride,
+        int uStride,
+        int vStride,
+        int uvPixelStride,
+        int width,
+        int height,
+        uint8* rgba
+) {
+  int rv;
+
+  const int y_plane_length = width * height;
+  const int uv_plane_length = y_plane_length / 4;
+  const int buffer_length = y_plane_length + uv_plane_length * 2;
+  std::unique_ptr<uint8> buffer(new uint8[buffer_length]);
+
+  // Convert Android 420 to I420 first
+  // https://bugs.chromium.org/p/libyuv/issues/detail?id=815&can=1&q=&sort=-id
+  rv = libyuv::Android420ToI420(yData, yStride,
+                                uData, uStride,
+                                vData, vStride,
+                                uvPixelStride,
+                                buffer.get(),
+                                width,
+                                buffer.get() + y_plane_length,
+                                width / 2,
+                                buffer.get() + y_plane_length + uv_plane_length,
+                                width / 2,
+                                width,
+                                height);
+  CHECK_EQ(0, rv);
+
+  const int rotate_y_plane_length = height * width;
+  const int rotate_uv_plane_length = rotate_y_plane_length / 4;
+  const int rotate_buffer_length = rotate_y_plane_length + rotate_uv_plane_length * 2;
+  std::unique_ptr<uint8> rotate_buffer(new uint8[rotate_buffer_length]);
+
+  rv = libyuv::I420Rotate(
+            buffer.get(),
+            width,
+            buffer.get() + y_plane_length,
+            width / 2,
+            buffer.get() + y_plane_length + uv_plane_length,
+            width / 2,
+            rotate_buffer.get(),
+            height,
+            rotate_buffer.get() + rotate_y_plane_length,
+            height / 2,
+            rotate_buffer.get() + rotate_y_plane_length + rotate_uv_plane_length,
+            height / 2,
+            width,
+            height,
+            libyuv::RotationMode::kRotate90
+    );
+  // libyuv reverses the byte order, so if ABGR is word order, the actual byte order is RBGA, see
+  // https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/master/source/row_common.cc#544
+  // https://chromium.googlesource.com/libyuv/libyuv/+/refs/heads/master/docs/formats.md#the-argb-fourcc
+  rv = libyuv::I420ToABGR(rotate_buffer.get(), height,  //
+                         rotate_buffer.get() + rotate_y_plane_length, height / 2,  //
+                         rotate_buffer.get() + rotate_y_plane_length + rotate_uv_plane_length, height / 2,  //
+                         rgba,
+                         height * 4, height, width); 
+  CHECK_EQ(0, rv);
+}
+
 void SrgbToMpegYCbCr(const uint8 r, const uint8 g, const uint8 b,  //
                      uint8* y, uint8* cb, uint8* cr) {
   // ITU-R BT.601 conversion from sRGB to YCbCr.
