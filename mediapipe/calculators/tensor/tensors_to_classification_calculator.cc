@@ -19,6 +19,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/types/span.h"
 #include "mediapipe/calculators/tensor/tensors_to_classification_calculator.pb.h"
+#include "mediapipe/framework/api2/node.h"
 #include "mediapipe/framework/calculator_framework.h"
 #include "mediapipe/framework/formats/classification.pb.h"
 #include "mediapipe/framework/formats/tensor.h"
@@ -32,6 +33,7 @@
 #endif
 
 namespace mediapipe {
+namespace api2 {
 
 // Convert result tensors from classification models into MediaPipe
 // classifications.
@@ -57,13 +59,16 @@ namespace mediapipe {
 //     }
 //   }
 // }
-class TensorsToClassificationCalculator : public CalculatorBase {
+class TensorsToClassificationCalculator : public Node {
  public:
-  static ::mediapipe::Status GetContract(CalculatorContract* cc);
+  static constexpr Input<std::vector<Tensor>> kInTensors{"TENSORS"};
+  static constexpr Output<ClassificationList> kOutClassificationList{
+      "CLASSIFICATIONS"};
+  MEDIAPIPE_NODE_CONTRACT(kInTensors, kOutClassificationList);
 
-  ::mediapipe::Status Open(CalculatorContext* cc) override;
-  ::mediapipe::Status Process(CalculatorContext* cc) override;
-  ::mediapipe::Status Close(CalculatorContext* cc) override;
+  mediapipe::Status Open(CalculatorContext* cc) override;
+  mediapipe::Status Process(CalculatorContext* cc) override;
+  mediapipe::Status Close(CalculatorContext* cc) override;
 
  private:
   ::mediapipe::TensorsToClassificationCalculatorOptions options_;
@@ -71,28 +76,10 @@ class TensorsToClassificationCalculator : public CalculatorBase {
   std::unordered_map<int, std::string> label_map_;
   bool label_map_loaded_ = false;
 };
-REGISTER_CALCULATOR(TensorsToClassificationCalculator);
+MEDIAPIPE_REGISTER_NODE(TensorsToClassificationCalculator);
 
-::mediapipe::Status TensorsToClassificationCalculator::GetContract(
-    CalculatorContract* cc) {
-  RET_CHECK(!cc->Inputs().GetTags().empty());
-  RET_CHECK(!cc->Outputs().GetTags().empty());
-
-  if (cc->Inputs().HasTag("TENSORS")) {
-    cc->Inputs().Tag("TENSORS").Set<std::vector<Tensor>>();
-  }
-
-  if (cc->Outputs().HasTag("CLASSIFICATIONS")) {
-    cc->Outputs().Tag("CLASSIFICATIONS").Set<ClassificationList>();
-  }
-
-  return ::mediapipe::OkStatus();
-}
-
-::mediapipe::Status TensorsToClassificationCalculator::Open(
+mediapipe::Status TensorsToClassificationCalculator::Open(
     CalculatorContext* cc) {
-  cc->SetOffset(TimestampDiff(0));
-
   options_ =
       cc->Options<::mediapipe::TensorsToClassificationCalculatorOptions>();
 
@@ -113,14 +100,12 @@ REGISTER_CALCULATOR(TensorsToClassificationCalculator);
     label_map_loaded_ = true;
   }
 
-  return ::mediapipe::OkStatus();
+  return mediapipe::OkStatus();
 }
 
-::mediapipe::Status TensorsToClassificationCalculator::Process(
+mediapipe::Status TensorsToClassificationCalculator::Process(
     CalculatorContext* cc) {
-  const auto& input_tensors =
-      cc->Inputs().Tag("TENSORS").Get<std::vector<Tensor>>();
-
+  const auto& input_tensors = *kInTensors(cc);
   RET_CHECK_EQ(input_tensors.size(), 1);
 
   int num_classes = input_tensors[0].shape().num_elements();
@@ -182,16 +167,14 @@ REGISTER_CALCULATOR(TensorsToClassificationCalculator);
     raw_classification_list->DeleteSubrange(
         top_k_, raw_classification_list->size() - top_k_);
   }
-  cc->Outputs()
-      .Tag("CLASSIFICATIONS")
-      .Add(classification_list.release(), cc->InputTimestamp());
-
-  return ::mediapipe::OkStatus();
+  kOutClassificationList(cc).Send(std::move(classification_list));
+  return mediapipe::OkStatus();
 }
 
-::mediapipe::Status TensorsToClassificationCalculator::Close(
+mediapipe::Status TensorsToClassificationCalculator::Close(
     CalculatorContext* cc) {
-  return ::mediapipe::OkStatus();
+  return mediapipe::OkStatus();
 }
 
+}  // namespace api2
 }  // namespace mediapipe

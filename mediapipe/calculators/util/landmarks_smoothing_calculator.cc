@@ -30,7 +30,7 @@ constexpr char kNormalizedLandmarksTag[] = "NORM_LANDMARKS";
 constexpr char kImageSizeTag[] = "IMAGE_SIZE";
 constexpr char kNormalizedFilteredLandmarksTag[] = "NORM_FILTERED_LANDMARKS";
 
-using ::mediapipe::RelativeVelocityFilter;
+using mediapipe::RelativeVelocityFilter;
 
 // Estimate object scale to use its inverse value as velocity scale for
 // RelativeVelocityFilter. If value will be too small (less than
@@ -63,24 +63,67 @@ class LandmarksFilter {
  public:
   virtual ~LandmarksFilter() = default;
 
-  virtual ::mediapipe::Status Reset() { return ::mediapipe::OkStatus(); }
+  virtual mediapipe::Status Reset() { return mediapipe::OkStatus(); }
 
-  virtual ::mediapipe::Status Apply(const NormalizedLandmarkList& in_landmarks,
-                                    const std::pair<int, int>& image_size,
-                                    const absl::Duration& timestamp,
-                                    NormalizedLandmarkList* out_landmarks) = 0;
+  virtual mediapipe::Status Apply(const NormalizedLandmarkList& in_landmarks,
+                                  const std::pair<int, int>& image_size,
+                                  const absl::Duration& timestamp,
+                                  NormalizedLandmarkList* out_landmarks) = 0;
 };
 
 // Returns landmarks as is without smoothing.
 class NoFilter : public LandmarksFilter {
  public:
+  mediapipe::Status Apply(const NormalizedLandmarkList& in_landmarks,
+                          const std::pair<int, int>& image_size,
+                          const absl::Duration& timestamp,
+                          NormalizedLandmarkList* out_landmarks) override {
+    *out_landmarks = in_landmarks;
+    return mediapipe::OkStatus();
+  }
+};
+
+// Returns landmarks smoothed with a pure rolling average buffer
+class RollingBufferFilter : public LandmarksFilter {
+ public:
   ::mediapipe::Status Apply(const NormalizedLandmarkList& in_landmarks,
                             const std::pair<int, int>& image_size,
                             const absl::Duration& timestamp,
                             NormalizedLandmarkList* out_landmarks) override {
-    *out_landmarks = in_landmarks;
+    for (int i = 0; i < 25; ++i) {
+      xBuffer[i][bufIndex] = in_landmarks.landmark(i).x();
+      yBuffer[i][bufIndex] = in_landmarks.landmark(i).y();
+      zBuffer[i][bufIndex] = in_landmarks.landmark(i).z();
+
+      float xAvg = getAverage(xBuffer[i]);
+      float yAvg = getAverage(yBuffer[i]);
+      float zAvg = getAverage(zBuffer[i]);
+      NormalizedLandmark* out_landmark = out_landmarks->add_landmark();
+      out_landmark->set_x(xAvg);
+      out_landmark->set_y(yAvg);
+      out_landmark->set_z(zAvg);
+      // Keep visibility as is.
+      out_landmark->set_visibility(in_landmarks.landmark(i).visibility());
+      // Keep presence as is.
+      out_landmark->set_presence(in_landmarks.landmark(i).presence());
+    }
+    bufIndex = (bufIndex + 1) % ROLLING_BUFF_SIZE;
     return ::mediapipe::OkStatus();
   }
+ private:
+  float getAverage(float* buffer) {
+    float sum = 0.0;
+    for (int i = 0; i < ROLLING_BUFF_SIZE; i++) {
+      sum += buffer[i];
+    }
+    return sum / ROLLING_BUFF_SIZE;
+  }  
+
+  // Hardcoded window size to ROLLING_BUFF_SIZE (25 landmarks per frame)
+  float xBuffer[25][ROLLING_BUFF_SIZE];
+  float yBuffer[25][ROLLING_BUFF_SIZE];
+  float zBuffer[25][ROLLING_BUFF_SIZE];
+  int bufIndex = 0;
 };
 
 // Returns landmarks smoothed with a pure rolling average buffer
@@ -135,17 +178,17 @@ class VelocityFilter : public LandmarksFilter {
         velocity_scale_(velocity_scale),
         min_allowed_object_scale_(min_allowed_object_scale) {}
 
-  ::mediapipe::Status Reset() override {
+  mediapipe::Status Reset() override {
     x_filters_.clear();
     y_filters_.clear();
     z_filters_.clear();
-    return ::mediapipe::OkStatus();
+    return mediapipe::OkStatus();
   }
 
-  ::mediapipe::Status Apply(const NormalizedLandmarkList& in_landmarks,
-                            const std::pair<int, int>& image_size,
-                            const absl::Duration& timestamp,
-                            NormalizedLandmarkList* out_landmarks) override {
+  mediapipe::Status Apply(const NormalizedLandmarkList& in_landmarks,
+                          const std::pair<int, int>& image_size,
+                          const absl::Duration& timestamp,
+                          NormalizedLandmarkList* out_landmarks) override {
     // Get image size.
     int image_width;
     int image_height;
@@ -158,7 +201,7 @@ class VelocityFilter : public LandmarksFilter {
         GetObjectScale(in_landmarks, image_width, image_height);
     if (object_scale < min_allowed_object_scale_) {
       *out_landmarks = in_landmarks;
-      return ::mediapipe::OkStatus();
+      return mediapipe::OkStatus();
     }
     const float value_scale = 1.0f / object_scale;
 
@@ -170,6 +213,7 @@ class VelocityFilter : public LandmarksFilter {
       const NormalizedLandmark& in_landmark = in_landmarks.landmark(i);
 
       NormalizedLandmark* out_landmark = out_landmarks->add_landmark();
+      *out_landmark = in_landmark;
       out_landmark->set_x(x_filters_[i].Apply(timestamp, value_scale,
                                               in_landmark.x() * image_width) /
                           image_width);
@@ -180,24 +224,20 @@ class VelocityFilter : public LandmarksFilter {
       out_landmark->set_z(z_filters_[i].Apply(timestamp, value_scale,
                                               in_landmark.z() * image_width) /
                           image_width);
-      // Keep visibility as is.
-      out_landmark->set_visibility(in_landmark.visibility());
-      // Keep presence as is.
-      out_landmark->set_presence(in_landmark.presence());
     }
 
-    return ::mediapipe::OkStatus();
+    return mediapipe::OkStatus();
   }
 
  private:
   // Initializes filters for the first time or after Reset. If initialized then
   // check the size.
-  ::mediapipe::Status InitializeFiltersIfEmpty(const int n_landmarks) {
+  mediapipe::Status InitializeFiltersIfEmpty(const int n_landmarks) {
     if (!x_filters_.empty()) {
       RET_CHECK_EQ(x_filters_.size(), n_landmarks);
       RET_CHECK_EQ(y_filters_.size(), n_landmarks);
       RET_CHECK_EQ(z_filters_.size(), n_landmarks);
-      return ::mediapipe::OkStatus();
+      return mediapipe::OkStatus();
     }
 
     x_filters_.resize(n_landmarks,
@@ -207,7 +247,7 @@ class VelocityFilter : public LandmarksFilter {
     z_filters_.resize(n_landmarks,
                       RelativeVelocityFilter(window_size_, velocity_scale_));
 
-    return ::mediapipe::OkStatus();
+    return mediapipe::OkStatus();
   }
 
   int window_size_;
@@ -250,16 +290,16 @@ class VelocityFilter : public LandmarksFilter {
 //
 class LandmarksSmoothingCalculator : public CalculatorBase {
  public:
-  static ::mediapipe::Status GetContract(CalculatorContract* cc);
-  ::mediapipe::Status Open(CalculatorContext* cc) override;
-  ::mediapipe::Status Process(CalculatorContext* cc) override;
+  static mediapipe::Status GetContract(CalculatorContract* cc);
+  mediapipe::Status Open(CalculatorContext* cc) override;
+  mediapipe::Status Process(CalculatorContext* cc) override;
 
  private:
   LandmarksFilter* landmarks_filter_;
 };
 REGISTER_CALCULATOR(LandmarksSmoothingCalculator);
 
-::mediapipe::Status LandmarksSmoothingCalculator::GetContract(
+mediapipe::Status LandmarksSmoothingCalculator::GetContract(
     CalculatorContract* cc) {
   cc->Inputs().Tag(kNormalizedLandmarksTag).Set<NormalizedLandmarkList>();
   cc->Inputs().Tag(kImageSizeTag).Set<std::pair<int, int>>();
@@ -267,10 +307,10 @@ REGISTER_CALCULATOR(LandmarksSmoothingCalculator);
       .Tag(kNormalizedFilteredLandmarksTag)
       .Set<NormalizedLandmarkList>();
 
-  return ::mediapipe::OkStatus();
+  return mediapipe::OkStatus();
 }
 
-::mediapipe::Status LandmarksSmoothingCalculator::Open(CalculatorContext* cc) {
+mediapipe::Status LandmarksSmoothingCalculator::Open(CalculatorContext* cc) {
   cc->SetOffset(TimestampDiff(0));
 
   // Pick landmarks filter.
@@ -287,16 +327,15 @@ REGISTER_CALCULATOR(LandmarksSmoothingCalculator);
         << "Landmarks filter is either not specified or not supported";
   }
 
-  return ::mediapipe::OkStatus();
+  return mediapipe::OkStatus();
 }
 
-::mediapipe::Status LandmarksSmoothingCalculator::Process(
-    CalculatorContext* cc) {
+mediapipe::Status LandmarksSmoothingCalculator::Process(CalculatorContext* cc) {
   // Check that landmarks are not empty and reset the filter if so.
   // Don't emit an empty packet for this timestamp.
   if (cc->Inputs().Tag(kNormalizedLandmarksTag).IsEmpty()) {
     MP_RETURN_IF_ERROR(landmarks_filter_->Reset());
-    return ::mediapipe::OkStatus();
+    return mediapipe::OkStatus();
   }
 
   const auto& in_landmarks =
@@ -314,7 +353,7 @@ REGISTER_CALCULATOR(LandmarksSmoothingCalculator);
       .Tag(kNormalizedFilteredLandmarksTag)
       .Add(out_landmarks.release(), cc->InputTimestamp());
 
-  return ::mediapipe::OkStatus();
+  return mediapipe::OkStatus();
 }
 
 }  // namespace mediapipe
