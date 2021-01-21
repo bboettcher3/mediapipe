@@ -9,9 +9,7 @@ namespace mediapipe
 
 namespace
 {
-constexpr char normRectTag[] = "NORM_RECT";
 constexpr char normalizedLandmarkListTag[] = "NORM_LANDMARKS";
-constexpr char handednessTag[] = "CLASSIFICATIONS";
 constexpr char recognizedHandGestureTag[] = "RECOGNIZED_HAND_GESTURE";
 } // namespace
 
@@ -20,7 +18,6 @@ constexpr char recognizedHandGestureTag[] = "RECOGNIZED_HAND_GESTURE";
 // node {
 //   calculator: "HandGestureRecognitionCalculator"
 //   input_stream: "NORM_LANDMARKS:scaled_landmarks"
-//   input_stream: "NORM_RECT:hand_rect_for_next_frame"
 // }
 class HandGestureRecognitionCalculator : public CalculatorBase
 {
@@ -58,10 +55,6 @@ private:
         PINKY_KNUCK = 17,
         BOTTOM_PALM = 0
     };
-    enum PALM_DIR {
-        FRONT,
-        BACK
-    };
 };
 
 REGISTER_CALCULATOR(HandGestureRecognitionCalculator);
@@ -71,9 +64,6 @@ REGISTER_CALCULATOR(HandGestureRecognitionCalculator);
 {
     RET_CHECK(cc->Inputs().HasTag(normalizedLandmarkListTag));
     cc->Inputs().Tag(normalizedLandmarkListTag).Set<mediapipe::NormalizedLandmarkList>();
-
-    RET_CHECK(cc->Inputs().HasTag(normRectTag));
-    cc->Inputs().Tag(normRectTag).Set<NormalizedRect>();
 
     RET_CHECK(cc->Inputs().HasTag(handednessTag));
     cc->Inputs().Tag(handednessTag).Set<ClassificationList>();
@@ -95,21 +85,6 @@ REGISTER_CALCULATOR(HandGestureRecognitionCalculator);
     CalculatorContext *cc)
 {
     std::string *recognized_hand_gesture;
-
-    // hand closed (red) rectangle
-    const auto rect = &(cc->Inputs().Tag(normRectTag).Get<NormalizedRect>());
-    float width = rect->width();
-    float height = rect->height();
-
-    if (width < 0.01 || height < 0.01)
-    {
-        // LOG(INFO) << "No Hand Detected";
-        recognized_hand_gesture = new std::string("NONE");
-        cc->Outputs()
-            .Tag(recognizedHandGestureTag)
-            .Add(recognized_hand_gesture, cc->InputTimestamp());
-        return ::mediapipe::OkStatus();
-    }    
 
     const auto &landmarkList = cc->Inputs()
                                    .Tag(normalizedLandmarkListTag)
@@ -206,19 +181,6 @@ REGISTER_CALCULATOR(HandGestureRecognitionCalculator);
     else if (thumbIsOpen && !firstFingerIsOpen && !secondFingerIsOpen && !thirdFingerIsOpen && fourthFingerIsOpen)
     {
         recognized_hand_gesture = new std::string("SHAKA");
-    }
-    else if (thumbIsOpen && !firstFingerIsOpen && !secondFingerIsOpen && !thirdFingerIsOpen && !fourthFingerIsOpen)
-    {
-        bool isThumbAbove = landmarkList.landmark(BOTTOM_THUMB).x() < landmarkList.landmark(BOTTOM_PINKY).x();
-        bool isLeftHand = rect->rotation() > 0;
-        if (!(isThumbAbove ^ isLeftHand))
-        {
-            recognized_hand_gesture = new std::string("THUMBSUP");
-        }
-        else
-        {
-            recognized_hand_gesture = new std::string("THUMBSDOWN");
-        }
     }
     else
     {

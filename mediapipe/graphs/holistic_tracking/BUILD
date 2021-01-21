@@ -50,13 +50,17 @@ cc_library(
         "//mediapipe/calculators/image:image_properties_calculator",
         "//mediapipe/calculators/util:annotation_overlay_calculator",
         "//mediapipe/modules/holistic_landmark:holistic_landmark_gpu",
+        "//mediapipe/gpu:image_frame_to_gpu_buffer_calculator",
+        "//mediapipe/calculators/image:image_transformation_calculator",
+        "//hand-gesture-recognition:hand-gesture-recognition-calculator",
+        "//hand-gesture-recognition:custom-landmark-projection-calculator"
     ],
 )
 
 mediapipe_binary_graph(
-    name = "holistic_tracking_gpu",
-    graph = "holistic_tracking_gpu.pbtxt",
-    output_name = "holistic_tracking_gpu.binarypb",
+    name = "holistic_tracking_custom",
+    graph = "holistic_tracking_custom.pbtxt",
+    output_name = "holistic_tracking_custom.binarypb",
     deps = [":holistic_tracking_gpu_deps"],
 )
 
